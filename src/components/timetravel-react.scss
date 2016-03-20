@@ -1,0 +1,48 @@
+.container {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.button {
+  composes: sans small bold from "./typography.scss";
+  background: rgba(0,0,0,0.2);
+  border-bottom: 2px solid rgba(0,0,0,0.1);
+  padding: 10px 20px 10px 10px;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  border: none;
+  margin-bottom: 1px;
+
+  &:focus {
+    outline: 0;
+  }
+}
+
+.list {
+  composes: sans small from "./typography.scss";
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  overflow: auto;
+  height: 100%;
+}
+
+.action-type {
+  composes: bold from "./typography.scss";
+  background: rgba(0,0,0,0.2);
+  padding: 10px 20px 10px 10px;
+  cursor: pointer;
+}
+
+.action-params {
+  background: rgba(0,0,0,0.1);
+  list-style-type: none;
+  padding: 10px 20px 10px 10px;
+  margin: 0;
+}
