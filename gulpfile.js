@@ -5,8 +5,9 @@ var gulp = require('gulp'),
     ignoreSass = require('ignore-styles'),
     babel = require('babel-core/register'),
     isparta = require('isparta'),
-    srcFiles = './src/**/*.js',
-    testFiles = './test/**/*.spec.js';
+    srcFiles = './src/**/*!(spec).js',
+    sassFiles = './src/**/*.scss',
+    testFiles = './src/**/*.spec.js';
 
 gulp.task('clean', function () {
   require('del').sync('lib');
@@ -50,13 +51,19 @@ gulp.task('babel', function() {
     .pipe(gulp.dest('lib'));
 });
 
+gulp.task('sass', function() {
+  return gulp.src(sassFiles)
+    .pipe(gulp.dest('lib'));
+});
+
 gulp.task('watch', function() {
   gulp.watch([srcFiles, testFiles], ['test']);
 });
 
 gulp.task('build', [
   'clean',
-  'babel'
+  'babel',
+  'sass'
 ]);
 
 gulp.task('default', [

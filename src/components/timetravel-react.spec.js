@@ -2,7 +2,7 @@ import chai from 'chai';
 import sinon from 'sinon';
 import React from 'react';
 import TestUtils from 'react-addons-test-utils';
-import { TimeTravel } from '../../src/components/timetravel-react';
+import { TimeTravel } from './timetravel-react';
 
 const render = () => {
   let renderer = TestUtils.createRenderer();

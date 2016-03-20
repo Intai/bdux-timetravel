@@ -60,7 +60,7 @@ const getOutputStream = (reducerStream) => (
     }))
 );
 
-const getReducer = () => {
+export const getReducer = () => {
   let reducerStream = new Bacon.Bus();
 
   return {
@@ -69,4 +69,6 @@ const getReducer = () => {
   };
 };
 
-export default createStore('TIMETRAVEL', getReducer);
+export default createStore(
+  'TIMETRAVEL', getReducer
+);

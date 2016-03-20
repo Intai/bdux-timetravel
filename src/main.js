@@ -1,3 +1,3 @@
-import TimeTravel from './component/timetravel-react';
+import TimeTravel from './components/timetravel-react';
 export * from './timetravel';
 export { TimeTravel };
