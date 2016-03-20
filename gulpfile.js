@@ -5,7 +5,7 @@ var gulp = require('gulp'),
     ignoreSass = require('ignore-styles'),
     babel = require('babel-core/register'),
     isparta = require('isparta'),
-    srcFiles = './src/**/*!(spec).js',
+    srcFiles = './src/**/!(*.spec).js',
     sassFiles = './src/**/*.scss',
     testFiles = './src/**/*.spec.js';
 
