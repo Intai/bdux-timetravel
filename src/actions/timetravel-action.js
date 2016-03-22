@@ -1,6 +1,8 @@
 import R from 'ramda';
 import Bacon from 'baconjs';
 import ActionTypes from './action-types';
+import Common from '../utils/common-util';
+import Storage from '../utils/storage-util';
 import { bindToDispatch } from 'bdux';
 
 const recordStream = new Bacon.Bus();
@@ -16,7 +18,7 @@ const hasActionInHistory = (history, record) => (
 );
 
 const generateId = (() => {
-  let id = 0;
+  let id = Common.now() * 1000;
   return () => (++id);
 })();
 
@@ -96,12 +98,16 @@ const addAnchor = (history, id) => (
   )
 );
 
-const historyProperty = Bacon.update([],
-  // accumulate a history of actions and store states.
-  [recordStream], accumRecords,
-  // anchor at a time slice in history.
-  [revertStream], addAnchor
-);
+const historyProperty = Bacon.update(
+  // restore history from session storage.
+  Storage.load('bduxHistory') || [],
+    // accumulate a history of actions and store states.
+    [recordStream], accumRecords,
+    // anchor at a time slice in history.
+    [revertStream], addAnchor
+)
+// save in session storage.
+.doAction(Storage.save('bduxHistory'));
 
 const onceThenNull = (func) => {
   let count = 0;
@@ -138,6 +144,44 @@ const createRevert = (id) => (
   .first()
 );
 
+const hasHistoryInStorage = () => (
+  !!Storage.load('bduxHistory')
+);
+
+const findAnchor = R.converge(R.or, [
+  R.find(R.propEq('anchor', true)),
+  R.last
+]);
+
+const deferStream = (stream) => (
+  stream.delay(1)
+);
+
+const defer = (creator) => (
+  R.pipe(
+    creator,
+    deferStream
+  )
+);
+
+const createRevertToAnchor = defer(() => (
+  Bacon.combineTemplate({
+    type: ActionTypes.TIMETRAVEL_REVERT,
+    timeslice: historyProperty
+      // find the anchor time slice to revert to.
+      .map(findAnchor),
+    skipLog: true
+  })
+  .toEventStream()
+  .first()
+));
+
+const createDeclutchForResume = defer(() => (
+  Bacon.once({
+    type: ActionTypes.TIMETRAVEL_DECLUTCH
+  })
+));
+
 const pushRecord = (record) => {
   recordStream.push(record);
 };
@@ -147,16 +191,29 @@ const pushRevert = (id) => {
 };
 
 // start only once.
-export const start = onceThenNull(() => (
+export const start = onceThenNull(defer(() => (
   // create an action when history changes.
   Bacon.combineTemplate({
     type: ActionTypes.TIMETRAVEL_HISTORY,
     history: historyProperty,
     skipLog: true
   })
-  .changes()
-  .delay(1)
-));
+  .toEventStream()
+)));
+
+export const resume = R.partial(
+  R.when(
+    // if there is history in session storage.
+    hasHistoryInStorage,
+    R.converge(Bacon.mergeAll, [
+      // reapply the anchor action and store states.
+      createRevertToAnchor,
+      // declutch by default when resuming.
+      createDeclutchForResume
+    ])
+  ),
+  [ null ]
+);
 
 export const record = R.ifElse(
   // dont record time travel related action and store state.
@@ -173,16 +230,17 @@ export const revert = R.pipe(
   createRevert
 );
 
-export const declutch = () =>({
+export const declutch = () => ({
   type: ActionTypes.TIMETRAVEL_DECLUTCH
 });
 
-export const clutch = () =>({
+export const clutch = () => ({
   type: ActionTypes.TIMETRAVEL_CLUTCH
 });
 
 export default bindToDispatch({
   start,
+  resume,
   record,
   revert,
   declutch,

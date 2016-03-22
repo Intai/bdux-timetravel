@@ -1,5 +1,6 @@
 import R from 'ramda';
 import Bacon from 'baconjs';
+import Storage from './utils/storage-util';
 import ActionTypes from './actions/action-types';
 import TimeTravelAction from './actions/timetravel-action.js';
 
@@ -78,7 +79,9 @@ const getDeclutchStream = (preStream) => (
 export const getPreReduce = () => {
   let preStream = new Bacon.Bus();
   let declutchStream = new Bacon.Bus();
-  let declutchProperty = declutchStream.toProperty(false);
+  let declutchProperty = declutchStream.toProperty(
+    // declutch by default when resuming from session storage.
+    !!Storage.load('bduxHistory'));
 
   declutchStream.plug(
     // whether currently clutched to dispatcher.
@@ -87,6 +90,8 @@ export const getPreReduce = () => {
 
   // start recording.
   TimeTravelAction.start();
+  // resume from session storage.
+  TimeTravelAction.resume();
 
   return {
     input: preStream,
