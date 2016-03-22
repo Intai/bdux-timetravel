@@ -3,6 +3,7 @@ import Bacon from 'baconjs';
 import ActionTypes from './action-types';
 import Common from '../utils/common-util';
 import Storage from '../utils/storage-util';
+import Browser from '../utils/browser-util';
 import { bindToDispatch } from 'bdux';
 
 const recordStream = new Bacon.Bus();
@@ -215,6 +216,11 @@ export const resume = R.partial(
   [ null ]
 );
 
+export const restart = () => {
+  Storage.remove('bduxHistory');
+  Browser.reload();
+};
+
 export const record = R.ifElse(
   // dont record time travel related action and store state.
   R.allPass([isNotTimeAction, isNotTimeStore]),
@@ -239,6 +245,7 @@ export const clutch = () => ({
 });
 
 export default bindToDispatch({
+  restart,
   start,
   resume,
   record,

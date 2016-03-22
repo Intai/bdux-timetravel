@@ -10,5 +10,10 @@ export default {
   load: (name) => (
     JSON.parse(window.sessionStorage
       .getItem(name))
+  ),
+
+  remove: (name) => (
+    window.sessionStorage
+      .removeItem(name)
   )
 };

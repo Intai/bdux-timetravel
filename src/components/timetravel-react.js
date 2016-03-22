@@ -39,7 +39,8 @@ const renderParams = R.pipe(
 const renderRecord = (record) => (
   <li key={ record.id }
     className={ cssModule({
-      'item': true }) }>
+      'item': true,
+      'anchor': record.anchor}) }>
 
     <div onClick={ onRevert(record.id) }
       className={ cssModule({
@@ -70,11 +71,19 @@ const renderTimeTravel = R.ifElse(
   R.always(<noscript />)
 );
 
+const renderRestart = () => (
+  <button onClick={ TimeTravelAction.restart }
+    className={ cssModule({
+      'button': true }) }>
+    Restart
+  </button>
+);
+
 const renderClutchButton = () => (
   <button onClick={ TimeTravelAction.clutch }
     className={ cssModule({
       'button': true }) }>
-    CLUTCH
+    Clutch
   </button>
 );
 
@@ -82,7 +91,7 @@ const renderDeclutchButton = () => (
   <button onClick={ TimeTravelAction.declutch }
     className={ cssModule({
       'button': true }) }>
-    DECLUTCH
+    Declutch
   </button>
 );
 
@@ -98,6 +107,7 @@ const renderClutch = R.ifElse(
 export const TimeTravel = ({ timetravel }) => (
   <div className={ cssModule({
       'container': true }) }>
+    { renderRestart() }
     { renderClutch(timetravel) }
     { renderTimeTravel(timetravel) }
   </div>
