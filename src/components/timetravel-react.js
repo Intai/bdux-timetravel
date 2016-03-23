@@ -5,7 +5,6 @@ import TimeTravelAction from '../actions/timetravel-action';
 import TimeTravelStore from '../stores/timetravel-store';
 import classNames from 'classnames/bind';
 import styles from './timetravel-react.scss';
-import { scrollIntoView } from './decorators/scroll-into-view-react.js';
 import { createComponent } from 'bdux'
 
 const cssModule = classNames.bind(styles);

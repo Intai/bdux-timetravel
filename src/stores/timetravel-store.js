@@ -1,6 +1,7 @@
 import R from 'ramda';
 import Bacon from 'baconjs';
 import ActionTypes from '../actions/action-types';
+import StoreNames from '../stores/store-names';
 import { createStore } from 'bdux';
 
 const isAction = R.pathEq(
@@ -70,5 +71,5 @@ export const getReducer = () => {
 };
 
 export default createStore(
-  'TIMETRAVEL', getReducer
+  StoreNames.TIMETRAVEL, getReducer
 );
