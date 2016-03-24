@@ -179,7 +179,8 @@ const createRevertToAnchor = defer(() => (
 
 const createDeclutchForResume = defer(() => (
   Bacon.once({
-    type: ActionTypes.TIMETRAVEL_DECLUTCH
+    type: ActionTypes.TIMETRAVEL_DECLUTCH,
+    skipLog: true
   })
 ));
 
@@ -237,11 +238,13 @@ export const revert = R.pipe(
 );
 
 export const declutch = () => ({
-  type: ActionTypes.TIMETRAVEL_DECLUTCH
+  type: ActionTypes.TIMETRAVEL_DECLUTCH,
+  skipLog: true
 });
 
 export const clutch = () => ({
-  type: ActionTypes.TIMETRAVEL_CLUTCH
+  type: ActionTypes.TIMETRAVEL_CLUTCH,
+  skipLog: true
 });
 
 export default bindToDispatch({
