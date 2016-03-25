@@ -32,10 +32,10 @@ export default App;
 ```
 
 ## Features
-Resume
-Restart
-Declutch
-Action
+History will be recorded in session storage and resumed automatically on page reload. The recorded history of actions and state changes are displayed in a list. Select an action from the list to travel back in time. Above the list, there are restart and declutch button.
+- Restart button to clear history and reload the page.
+- Declutch button to stop actions from flowing into stores.
+- Clutch button to start engaging stores again.
 
 ## License
 [The ISC License](./LICENSE.md)
