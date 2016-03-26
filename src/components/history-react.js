@@ -19,10 +19,21 @@ const hasHistory = R.pipe(
   R.is(Array)
 );
 
+const formatValue = (value) => (
+  // todo: expandable tree view.
+  JSON.stringify(value)
+    .replace(/([{,])/g, '$1\n  ')
+    .replace(/"(.*)":/g, '$1: ')
+    .replace(/}$/, ' }')
+);
+
 const renderParam = (value, key) => (
   <li key={ key }>
-    <span>{ key }</span>:
-    <span>{ value }</span>
+    <span>{ key }</span>:&nbsp;
+    <span className={ cssModule({
+        'action-value': true }) }>
+      { formatValue(value) }
+    </span>
   </li>
 );
 
