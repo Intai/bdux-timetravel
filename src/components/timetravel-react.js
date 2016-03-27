@@ -25,7 +25,8 @@ const renderRestart = () => (
 const renderClutchButton = () => (
   <button onClick={ TimeTravelAction.clutch }
     className={ cssModule({
-      'button': true }) }>
+      'button': true,
+      'clutch': true }) }>
     Clutch
   </button>
 );
