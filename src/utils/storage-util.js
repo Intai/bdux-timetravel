@@ -1,19 +1,28 @@
 import R from 'ramda';
+import Common from './common-util';
+
+const whenCanUseDOM = R.flip(R.wrap)((func, ...args) => (
+  Common.canUseDOM()
+    && func.apply(func, args)
+));
 
 export default {
 
-  save: R.curry((name, value) => (
+  save: R.curryN(2, whenCanUseDOM((name, value) => (
     window.sessionStorage
       .setItem(name, JSON.stringify(value))
-  )),
+  ))),
 
-  load: (name) => (
-    JSON.parse(window.sessionStorage
-      .getItem(name))
-  ),
+  load: whenCanUseDOM((name) => {
+    try {
+      return JSON.parse(window.sessionStorage
+        .getItem(name));
+    }
+    catch (e) {}
+  }),
 
-  remove: (name) => (
+  remove: whenCanUseDOM((name) => (
     window.sessionStorage
       .removeItem(name)
-  )
+  ))
 };

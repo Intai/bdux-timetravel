@@ -9,6 +9,12 @@ const mapToKeyValue = (obj, key) => {
 
 export default {
 
+  canUseDOM: R.once(() => (
+    typeof window !== 'undefined'
+      && window.document
+      && window.document.createElement
+  )),
+
   now: Date.now || (() => (
     (new Date()).getTime()
   )),
