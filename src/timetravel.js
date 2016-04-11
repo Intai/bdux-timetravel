@@ -21,7 +21,7 @@ const isDeclutch = isAction(
 );
 
 const findRecordByName = (name, records) => (
-  R.find(R.propEq('name', name), records)
+  R.find(R.propEq('name', name), records || [])
 );
 
 const findTimeRecord = R.converge(
