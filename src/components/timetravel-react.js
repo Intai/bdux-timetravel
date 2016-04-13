@@ -59,4 +59,6 @@ export const TimeTravel = ({ timetravel }) => (
 
 export default createComponent(TimeTravel, {
   timetravel: TimeTravelStore
-});
+},
+// resume from session storage.
+TimeTravelAction.resume);

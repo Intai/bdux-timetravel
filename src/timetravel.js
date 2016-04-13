@@ -1,6 +1,8 @@
 import R from 'ramda';
 import Bacon from 'baconjs';
+import Common from './utils/common-util';
 import Storage from './utils/storage-util';
+import StoreNames from './stores/store-names';
 import ActionTypes from './actions/action-types';
 import TimeTravelAction from './actions/timetravel-action.js';
 
@@ -18,6 +20,10 @@ const isClutch = isAction(
 
 const isDeclutch = isAction(
   ActionTypes.TIMETRAVEL_DECLUTCH
+);
+
+const isHistory = isAction(
+  ActionTypes.TIMETRAVEL_HISTORY
 );
 
 const findRecordByName = (name, records) => (
@@ -50,16 +56,41 @@ const isNotTimeTravel = R.pipe(
     ActionTypes.TIMETRAVEL_HISTORY,
     ActionTypes.TIMETRAVEL_REVERT,
     ActionTypes.TIMETRAVEL_DECLUTCH,
-    ActionTypes.TIMETRAVEL_CLUTCH
+    ActionTypes.TIMETRAVEL_CLUTCH,
+    ActionTypes.TIMETRAVEL_IDLE
   ]),
   R.not
 );
 
-const rejectDeclutch = R.ifElse(
+const hasHistoryInStorage = R.once(() => (
+  !!Storage.load('bduxHistory')
+));
+
+const declutch = R.once(
+  TimeTravelAction.declutch
+);
+
+const declutchToResume = (outputStream) => (
+  outputStream
+    .doAction(R.when(
+      isHistory,
+      declutch
+    ))
+);
+
+const mapToIdle = (args) => (
+  R.mergeWith(R.merge)(args, {
+    action: {
+      type: ActionTypes.TIMETRAVEL_IDLE
+    }
+  })
+);
+
+const mapDeclutchToIdle = R.ifElse(
   // if was declutched and not time travelling.
   R.allPass([R.nthArg(1), isNotTimeTravel]),
-  // abort the reduce.
-  R.always(null),
+  // change the action to do nothing.
+  mapToIdle,
   // otherwise continue reducing.
   R.nthArg(0)
 );
@@ -68,40 +99,55 @@ const getDeclutchStream = (preStream) => (
   Bacon.mergeAll(
     preStream
       .filter(isClutch)
-      .map(R.always(false)),
-
+      .map(R.F),
     preStream
       .filter(isDeclutch)
-      .map(R.always(true))
+      .map(R.T)
   )
 );
 
-export const getPreReduce = () => {
-  let preStream = new Bacon.Bus();
+const getDeclutchProperty = (preStream) => {
   let declutchStream = new Bacon.Bus();
   let declutchProperty = declutchStream.toProperty(
     // declutch by default when resuming from session storage.
-    !!Storage.load('bduxHistory'));
+    hasHistoryInStorage());
 
   declutchStream.plug(
     // whether currently clutched to dispatcher.
     getDeclutchStream(preStream)
   );
 
+  return declutchProperty;
+};
+
+const getPreOutputStream = (preStream) => (
+  Bacon.when(
+    // filter out actions while declutched.
+    [preStream, getDeclutchProperty(preStream)], mapDeclutchToIdle)
+  // record the action and store states.
+  .doAction(TimeTravelAction.record)
+  // handle revert action.
+  .map(mapTimeRevert)
+);
+
+const getPreOutput = R.pipe(
+  getPreOutputStream,
+  R.when(
+    // when resuming from session storage on client.
+    R.allPass([Common.canUseDOM, hasHistoryInStorage]),
+    // declutch by default.
+    declutchToResume
+  )
+);
+
+export const getPreReduce = () => {
+  let preStream = new Bacon.Bus();
+
   // start recording.
   TimeTravelAction.start();
-  // resume from session storage.
-  TimeTravelAction.resume();
 
   return {
     input: preStream,
-    output: Bacon.when(
-        // filter out actions while declutched.
-        [preStream, declutchProperty], rejectDeclutch)
-      .filter(R.identity)
-      // record the action and store states.
-      .doAction(TimeTravelAction.record)
-      // handle revert action.
-      .map(mapTimeRevert)
+    output: getPreOutput(preStream)
   };
 };

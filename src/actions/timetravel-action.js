@@ -1,11 +1,13 @@
 import R from 'ramda';
 import Bacon from 'baconjs';
 import ActionTypes from './action-types';
+import StoreNames from '../stores/store-names';
 import Common from '../utils/common-util';
 import Storage from '../utils/storage-util';
 import Browser from '../utils/browser-util';
 import { bindToDispatch } from 'bdux';
 
+const updateStream = new Bacon.Bus();
 const recordStream = new Bacon.Bus();
 const revertStream = new Bacon.Bus();
 
@@ -102,6 +104,8 @@ const addAnchor = (history, id) => (
 const historyProperty = Bacon.update(
   // restore history from session storage.
   Storage.load('bduxHistory') || [],
+    // update history.
+    [updateStream], R.nthArg(0),
     // accumulate a history of actions and store states.
     [recordStream], accumRecords,
     // anchor at a time slice in history.
@@ -125,13 +129,14 @@ const isNotTimeAction = R.pipe(
     ActionTypes.TIMETRAVEL_HISTORY,
     ActionTypes.TIMETRAVEL_REVERT,
     ActionTypes.TIMETRAVEL_DECLUTCH,
-    ActionTypes.TIMETRAVEL_CLUTCH
+    ActionTypes.TIMETRAVEL_CLUTCH,
+    ActionTypes.TIMETRAVEL_IDLE
   ]),
   R.not
 );
 
 const isNotTimeStore = R.complement(
-  R.propEq('name', 'TIMETRAVEL')
+  R.propEq('name', StoreNames.TIMETRAVEL)
 );
 
 const createRevert = (id) => (
@@ -142,6 +147,7 @@ const createRevert = (id) => (
       .map(R.find(R.propEq('id', id))),
     skipLog: true
   })
+  .toEventStream()
   .first()
 );
 
@@ -154,18 +160,7 @@ const findAnchor = R.converge(R.or, [
   R.last
 ]);
 
-const deferStream = (stream) => (
-  stream.delay(1)
-);
-
-const defer = (creator) => (
-  R.pipe(
-    creator,
-    deferStream
-  )
-);
-
-const createRevertToAnchor = defer(() => (
+const createRevertToAnchor = () => (
   Bacon.combineTemplate({
     type: ActionTypes.TIMETRAVEL_REVERT,
     timeslice: historyProperty
@@ -175,14 +170,11 @@ const createRevertToAnchor = defer(() => (
   })
   .toEventStream()
   .first()
-));
+);
 
-const createDeclutchForResume = defer(() => (
-  Bacon.once({
-    type: ActionTypes.TIMETRAVEL_DECLUTCH,
-    skipLog: true
-  })
-));
+const pushUpdate = () => {
+  updateStream.push(true);
+};
 
 const pushRecord = (record) => {
   recordStream.push(record);
@@ -192,29 +184,32 @@ const pushRevert = (id) => {
   revertStream.push(id);
 };
 
-// start only once.
-export const start = onceThenNull(defer(() => (
+const createStartStream = () => (
   // create an action when history changes.
   Bacon.combineTemplate({
     type: ActionTypes.TIMETRAVEL_HISTORY,
     history: historyProperty,
     skipLog: true
   })
-  .toEventStream()
-)));
+  .changes()
+);
 
-export const resume = R.partial(
-  R.when(
+// start only once.
+export const start = onceThenNull(R.ifElse(
+  Common.canUseDOM,
+  createStartStream,
+  R.F
+));
+
+export const resume = R.pipe(
+  R.partial(R.when(
     // if there is history in session storage.
-    hasHistoryInStorage,
-    R.converge(Bacon.mergeAll, [
-      // reapply the anchor action and store states.
-      createRevertToAnchor,
-      // declutch by default when resuming.
-      createDeclutchForResume
-    ])
-  ),
-  [ null ]
+    R.allPass([Common.canUseDOM, hasHistoryInStorage]),
+    // reapply the anchor action and store states.
+    createRevertToAnchor
+  ), [null]),
+  // update history.
+  R.tap(pushUpdate)
 );
 
 export const restart = () => {
@@ -227,7 +222,7 @@ export const record = R.ifElse(
   R.allPass([isNotTimeAction, isNotTimeStore]),
   // record an action with store states.
   pushRecord,
-  R.always(false)
+  R.F
 );
 
 export const revert = R.pipe(
