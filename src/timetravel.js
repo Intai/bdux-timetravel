@@ -81,7 +81,8 @@ const declutchToResume = (outputStream) => (
 const mapToIdle = (args) => (
   R.mergeWith(R.merge)(args, {
     action: {
-      type: ActionTypes.TIMETRAVEL_IDLE
+      type: ActionTypes.TIMETRAVEL_IDLE,
+      skipLog: true
     }
   })
 );
