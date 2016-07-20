@@ -1,30 +1,47 @@
 import R from 'ramda'
 import Common from './common-util'
 
-const whenCanUseDOM = R.flip(R.wrap)((func, ...args) => (
-  Common.canUseDOM()
-    && func.apply(func, args)
-))
+const save = (name, value) => (
+  Promise.resolve(window.sessionStorage
+    .setItem(name, JSON.stringify(value)))
+)
+
+const load = (name) => {
+  var value
+  try {
+    value = JSON.parse(window.sessionStorage
+      .getItem(name))
+  } catch (e) {}
+
+  return Promise.resolve(value)
+}
+
+const remove = (name) => (
+  Promise.resolve(window.sessionStorage
+    .removeItem(name))
+)
+
+const empty = () => (
+  Promise.resolve()
+)
 
 export default {
 
-  save: R.curryN(2, whenCanUseDOM((name, value) => (
-    Promise.resolve(window.sessionStorage
-      .setItem(name, JSON.stringify(value)))
-  ))),
+  save: R.curryN(2, R.ifElse(
+    Common.canUseDOM,
+    save,
+    empty
+  )),
 
-  load: whenCanUseDOM((name) => {
-    var value
-    try {
-      value = JSON.parse(window.sessionStorage
-        .getItem(name))
-    } catch (e) {}
+  load: R.ifElse(
+    Common.canUseDOM,
+    load,
+    empty
+  ),
 
-    return Promise.resolve(value)
-  }),
-
-  remove: whenCanUseDOM((name) => (
-    Promise.resolve(window.sessionStorage
-      .removeItem(name))
-  ))
+  remove: R.ifElse(
+    Common.canUseDOM,
+    remove,
+    empty
+  )
 }
