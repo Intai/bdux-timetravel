@@ -65,6 +65,7 @@ const renderRecord = (record) => (
 
 const renderHistory = (timetravel) => (
   <ul className={ cssModule({
+      'hide': !timetravel.showHistory,
       'list': true }) }>
     { R.map(renderRecord, timetravel.history) }
   </ul>

@@ -5,6 +5,10 @@
   margin: 0;
   overflow: auto;
   height: 100%;
+
+  &.hide {
+    flex: 0;
+  }
 }
 
 .item.anchor {

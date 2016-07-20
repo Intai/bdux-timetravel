@@ -126,6 +126,7 @@ const onceThenNull = (func) => {
 const isNotTimeAction = R.pipe(
   R.path(['action', 'type']),
   R.flip(R.contains)([
+    ActionTypes.TIMETRAVEL_TOGGLE_HISTORY,
     ActionTypes.TIMETRAVEL_HISTORY,
     ActionTypes.TIMETRAVEL_REVERT,
     ActionTypes.TIMETRAVEL_DECLUTCH,
@@ -231,6 +232,11 @@ export const clutch = () => ({
   skipLog: true
 })
 
+export const toggleHistory = () => ({
+  type: ActionTypes.TIMETRAVEL_TOGGLE_HISTORY,
+  skipLog: true
+})
+
 export default bindToDispatch({
   restart,
   start,
@@ -238,5 +244,6 @@ export default bindToDispatch({
   record,
   revert,
   declutch,
-  clutch
+  clutch,
+  toggleHistory
 })

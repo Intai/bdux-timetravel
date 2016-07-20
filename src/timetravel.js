@@ -49,6 +49,7 @@ const isNotTimeTravel = R.pipe(
   R.nthArg(0),
   R.path(['action', 'type']),
   R.flip(R.contains)([
+    ActionTypes.TIMETRAVEL_TOGGLE_HISTORY,
     ActionTypes.TIMETRAVEL_HISTORY,
     ActionTypes.TIMETRAVEL_REVERT,
     ActionTypes.TIMETRAVEL_DECLUTCH,

@@ -1,13 +1,17 @@
 .container {
   position: absolute;
   right: 0;
-  top: 0;
+  bottom: 0;
   height: 100%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   margin-right: 2px;
-  max-width: 320px;
+  max-width: 316px;
+
+  &.hide-history {
+    height: 111px;
+  }
 }
 
 .button {
@@ -19,6 +23,7 @@
   text-align: center;
   cursor: pointer;
   width: 100%;
+  flex: 0 0 35px;
   border: none;
   border-radius: 3px;
   color: darkcyan;

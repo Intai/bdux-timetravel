@@ -1,18 +1,18 @@
-import R from 'ramda';
-import React from 'react';
-import History from './history-react';
-import TimeTravelAction from '../actions/timetravel-action';
-import TimeTravelStore from '../stores/timetravel-store';
-import classNames from 'classnames/bind';
-import styles from './timetravel-react.scss';
+import R from 'ramda'
+import React from 'react'
+import History from './history-react'
+import TimeTravelAction from '../actions/timetravel-action'
+import TimeTravelStore from '../stores/timetravel-store'
+import classNames from 'classnames/bind'
+import styles from './timetravel-react.scss'
 import { createComponent } from 'bdux'
 
-const cssModule = classNames.bind(styles);
+const cssModule = classNames.bind(styles)
 
 const isDeclutch = R.pipe(
   R.defaultTo({}),
   R.prop('declutch')
-);
+)
 
 const renderRestart = () => (
   <button onClick={ TimeTravelAction.restart }
@@ -20,7 +20,7 @@ const renderRestart = () => (
       'button': true }) }>
     Restart
   </button>
-);
+)
 
 const renderClutchButton = () => (
   <button onClick={ TimeTravelAction.clutch }
@@ -29,7 +29,7 @@ const renderClutchButton = () => (
       'clutch': true }) }>
     Clutch
   </button>
-);
+)
 
 const renderDeclutchButton = () => (
   <button onClick={ TimeTravelAction.declutch }
@@ -37,7 +37,7 @@ const renderDeclutchButton = () => (
       'button': true }) }>
     Declutch
   </button>
-);
+)
 
 const renderClutch = R.ifElse(
   // if declutched from dispatcher.
@@ -46,19 +46,40 @@ const renderClutch = R.ifElse(
   renderClutchButton,
   // render a button to declutch.
   renderDeclutchButton
-);
+)
+
+const shouldShowHistory = (timetravel) => (
+  timetravel && timetravel.showHistory
+)
+
+const getToggleHistoryText = (timetravel) => (
+  shouldShowHistory(timetravel)
+    ? 'Hide History'
+    : 'Show History'
+)
+
+const renderToggleHistory = (timetravel) => (
+  <button onClick={ TimeTravelAction.toggleHistory }
+    className={ cssModule({
+      'button': true }) }>
+    { getToggleHistoryText(timetravel) }
+  </button>
+)
 
 export const TimeTravel = ({ timetravel }) => (
   <div className={ cssModule({
+      'hide-history': !shouldShowHistory(timetravel),
       'container': true }) }>
     { renderRestart() }
     { renderClutch(timetravel) }
+    { renderToggleHistory(timetravel) }
+
     <History />
   </div>
-);
+)
 
 export default createComponent(TimeTravel, {
   timetravel: TimeTravelStore
 },
 // resume from session storage.
-TimeTravelAction.resume);
+TimeTravelAction.resume)
