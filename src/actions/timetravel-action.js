@@ -1,29 +1,28 @@
-import R from 'ramda';
-import Bacon from 'baconjs';
-import ActionTypes from './action-types';
-import StoreNames from '../stores/store-names';
-import Common from '../utils/common-util';
-import Storage from '../utils/storage-util';
-import Browser from '../utils/browser-util';
-import { bindToDispatch } from 'bdux';
+import R from 'ramda'
+import Bacon from 'baconjs'
+import ActionTypes from './action-types'
+import StoreNames from '../stores/store-names'
+import Common from '../utils/common-util'
+import Storage from '../utils/storage-util'
+import Browser from '../utils/browser-util'
+import { bindToDispatch } from 'bdux'
 
-const updateStream = new Bacon.Bus();
-const recordStream = new Bacon.Bus();
-const revertStream = new Bacon.Bus();
+const recordStream = new Bacon.Bus()
+const revertStream = new Bacon.Bus()
 
 const isActionEqual = R.curry((record, timeslice) => (
   timeslice.action.id === record.action.id
-));
+))
 
 const hasActionInHistory = (history, record) => (
   // find the same action in history.
   R.find(isActionEqual(record), history)
-);
+)
 
 const generateId = (() => {
-  let id = Common.now() * 1000;
-  return () => (++id);
-})();
+  let id = Common.now() * 1000
+  return () => (++id)
+})()
 
 const appendRecordToHistory = (history, record) => (
   // append a new time slice to the history.
@@ -33,13 +32,13 @@ const appendRecordToHistory = (history, record) => (
     records: [record]
   },
   history)
-);
+)
 
 const resetAnchor = R.ifElse(
   R.isNil,
   R.always([]),
   R.flip(R.merge)({ anchor: false })
-);
+)
 
 const clearHistoryAfterAnchor = R.pipe(
   // split before and from the anchor time slice.
@@ -53,7 +52,7 @@ const clearHistoryAfterAnchor = R.pipe(
       R.pipe(R.nth(1), R.head, resetAnchor)
     ]
   )
-);
+)
 
 const addRecordToHistory = R.converge(
   appendRecordToHistory, [
@@ -62,7 +61,7 @@ const addRecordToHistory = R.converge(
     // create a new time slice for the record.
     R.nthArg(1)
   ]
-);
+)
 
 const mergeRecord = R.curry((record, timeslice) => (
   // if for the same action.
@@ -70,14 +69,14 @@ const mergeRecord = R.curry((record, timeslice) => (
     // merge the record to an existing time slice.
     ? R.mergeWith(R.concat, timeslice, { records: record })
     : timeslice
-));
+))
 
 const mergeRecordToHistory = (history, record) => (
   R.map(
     mergeRecord(record),
     history
   )
-);
+)
 
 const accumRecords = R.ifElse(
   // if the action has been recorded in history.
@@ -86,42 +85,43 @@ const accumRecords = R.ifElse(
   mergeRecordToHistory,
   // otherwise add a new time slice.
   addRecordToHistory
-);
+)
 
 const addAnchorToTimeSlice = R.curry((id, timeslice) => (
   R.merge(timeslice, {
     anchor: (id === timeslice.id)
   })
-));
+))
 
 const addAnchor = (history, id) => (
   R.map(
     addAnchorToTimeSlice(id),
     history
   )
-);
+)
 
-const historyProperty = Bacon.update(
+const historyInStorageStream = Bacon.fromPromise(
+  Storage.load('bduxHistory'))
+
+const historyProperty = Bacon.update([],
   // restore history from session storage.
-  Storage.load('bduxHistory') || [],
-    // update history.
-    [updateStream], R.nthArg(0),
-    // accumulate a history of actions and store states.
-    [recordStream], accumRecords,
-    // anchor at a time slice in history.
-    [revertStream], addAnchor
+  [historyInStorageStream.first().filter(R.is(Array))], R.nthArg(1),
+  // accumulate a history of actions and store states.
+  [recordStream], accumRecords,
+  // anchor at a time slice in history.
+  [revertStream], addAnchor
 )
 // save in session storage.
-.doAction(Storage.save('bduxHistory'));
+.doAction(Storage.save('bduxHistory'))
 
 const onceThenNull = (func) => {
-  let count = 0;
+  let count = 0
   return (...args) => (
     (count++ <= 0)
       ? func.apply(func, args)
       : null
-  );
-};
+  )
+}
 
 const isNotTimeAction = R.pipe(
   R.path(['action', 'type']),
@@ -133,11 +133,11 @@ const isNotTimeAction = R.pipe(
     ActionTypes.TIMETRAVEL_IDLE
   ]),
   R.not
-);
+)
 
 const isNotTimeStore = R.complement(
   R.propEq('name', StoreNames.TIMETRAVEL)
-);
+)
 
 const createRevert = (id) => (
   Bacon.combineTemplate({
@@ -149,40 +149,33 @@ const createRevert = (id) => (
   })
   .toEventStream()
   .first()
-);
-
-const hasHistoryInStorage = () => (
-  !!Storage.load('bduxHistory')
-);
+)
 
 const findAnchor = R.converge(R.or, [
   R.find(R.propEq('anchor', true)),
   R.last
-]);
+])
 
-const createRevertToAnchor = () => (
+const createResumeToAnchor = () => (
   Bacon.combineTemplate({
     type: ActionTypes.TIMETRAVEL_REVERT,
-    timeslice: historyProperty
+    timeslice: historyInStorageStream
       // find the anchor time slice to revert to.
+      .map(R.defaultTo([]))
       .map(findAnchor),
     skipLog: true
   })
   .toEventStream()
   .first()
-);
-
-const pushUpdate = () => {
-  updateStream.push(true);
-};
+)
 
 const pushRecord = (record) => {
-  recordStream.push(record);
-};
+  recordStream.push(record)
+}
 
 const pushRevert = (id) => {
-  revertStream.push(id);
-};
+  revertStream.push(id)
+}
 
 const createStartStream = () => (
   // create an action when history changes.
@@ -192,30 +185,26 @@ const createStartStream = () => (
     skipLog: true
   })
   .changes()
-);
+)
 
 // start only once.
 export const start = onceThenNull(R.ifElse(
-  Common.canUseDOM,
+  Common.isOnClient,
   createStartStream,
   R.F
-));
+))
 
-export const resume = R.pipe(
-  R.partial(R.when(
-    // if there is history in session storage.
-    R.allPass([Common.canUseDOM, hasHistoryInStorage]),
-    // reapply the anchor action and store states.
-    createRevertToAnchor
-  ), [null]),
-  // update history.
-  R.tap(pushUpdate)
-);
+// reapply the anchor action and store states.
+export const resume = R.ifElse(
+  Common.isOnClient,
+  createResumeToAnchor,
+  R.F
+)
 
 export const restart = () => {
-  Storage.remove('bduxHistory');
-  Browser.reload();
-};
+  Storage.remove('bduxHistory')
+    .then(Browser.reload)
+}
 
 export const record = R.ifElse(
   // dont record time travel related action and store state.
@@ -223,24 +212,24 @@ export const record = R.ifElse(
   // record an action with store states.
   pushRecord,
   R.F
-);
+)
 
 export const revert = R.pipe(
   // anchor at a time slice in history.
   R.tap(pushRevert),
   // reapply the action and store states.
   createRevert
-);
+)
 
 export const declutch = () => ({
   type: ActionTypes.TIMETRAVEL_DECLUTCH,
   skipLog: true
-});
+})
 
 export const clutch = () => ({
   type: ActionTypes.TIMETRAVEL_CLUTCH,
   skipLog: true
-});
+})
 
 export default bindToDispatch({
   restart,
@@ -250,4 +239,4 @@ export default bindToDispatch({
   revert,
   declutch,
   clutch
-});
+})

@@ -1,6 +1,6 @@
-import R from 'ramda';
+import R from 'ramda'
 
-const PREFIX = 'TT';
+const PREFIX = 'TT'
 
 const canUseDOM = () => (
   typeof window !== 'undefined'
@@ -15,9 +15,9 @@ const isReactNative = () => (
 )
 
 const mapToKeyValue = (obj, key) => {
-  obj[key] = PREFIX + '_' + key;
+  obj[key] = PREFIX + '_' + key
   return obj
-};
+}
 
 export default {
 
@@ -45,4 +45,4 @@ export default {
   createObjOfConsts: R.reduce(
     mapToKeyValue, {}
   )
-};
+}
