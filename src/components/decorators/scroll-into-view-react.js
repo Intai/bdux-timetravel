@@ -43,8 +43,10 @@ const isNotHover = (() => {
   }
 })();
 
-const isElement = ({ node }) => (
-  node && node instanceof Element && node.tagName !== 'NOSCRIPT'
+const isElementVisible = ({ node }) =>(
+  node && node instanceof Element
+    && node.tagName !== 'NOSCRIPT'
+    && node.offsetHeight
 );
 
 const isAnchorElement = ({ anchor }) => (
@@ -76,14 +78,11 @@ const getScrollTop = ({ node, anchor }) => ({
 const isDiffAnchor = (() => {
   let prev = 0;
 
-  return ({ anchor }) => {
-    let reactid = anchor
-      .getAttribute('data-reactid');
-
-    return (prev !== reactid)
-      ? prev = reactid
-      : false;
-  };
+  return ({ anchor }) => (
+    (prev !== anchor)
+      ? prev = anchor
+      : false
+  );
 })();
 
 const scrollToDiffAnchor = R.when(
@@ -103,7 +102,7 @@ const scrollToAnchor = R.pipe(
 );
 
 const scrollToSelector = R.when(
-  R.allPass([isElement, isNotHover]),
+  R.allPass([isElementVisible, isNotHover]),
   scrollToAnchor
 );
 
