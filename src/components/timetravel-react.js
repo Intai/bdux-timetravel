@@ -1,20 +1,18 @@
 import R from 'ramda'
 import React from 'react'
-import History from './history-react'
+import Container from './container-react'
+//import History from './history-react'
 import TimeTravelAction from '../actions/timetravel-action'
 import TimeTravelStore from '../stores/timetravel-store'
-import classNames from 'classnames/bind'
-import styles from './timetravel-react.scss'
+import styles from './timetravel-style'
 import { createComponent } from 'bdux'
-
-const cssModule = classNames.bind(styles)
 
 const isDeclutch = R.pipe(
   R.defaultTo({}),
   R.prop('declutch')
 )
 
-const renderRestart = () => (
+/*const renderRestart = () => (
   <button onClick={ TimeTravelAction.restart }
     className={ cssModule({
       'button': true }) }>
@@ -46,13 +44,13 @@ const renderClutch = R.ifElse(
   renderClutchButton,
   // render a button to declutch.
   renderDeclutchButton
-)
+)*/
 
 const shouldShowHistory = (timetravel) => (
   timetravel && timetravel.showHistory
 )
 
-const getToggleHistoryText = (timetravel) => (
+/*const getToggleHistoryText = (timetravel) => (
   shouldShowHistory(timetravel)
     ? 'Hide History'
     : 'Show History'
@@ -64,18 +62,17 @@ const renderToggleHistory = (timetravel) => (
       'button': true }) }>
     { getToggleHistoryText(timetravel) }
   </button>
-)
+)*/
 
 export const TimeTravel = ({ timetravel }) => (
-  <div className={ cssModule({
-      'hide-history': !shouldShowHistory(timetravel),
-      'container': true }) }>
-    { renderRestart() }
+  <Container style={[ styles.container,
+    !shouldShowHistory(timetravel) && styles.hideHistory ]}>
+    {/*{ renderRestart() }
     { renderClutch(timetravel) }
     { renderToggleHistory(timetravel) }
 
-    <History />
-  </div>
+    <History />*/}
+  </Container>
 )
 
 export default createComponent(TimeTravel, {
