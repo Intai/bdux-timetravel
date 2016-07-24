@@ -11,6 +11,12 @@ export default {
     maxWidth: '316px'
   },
   hideHistory: {
-    height: '111px'
+    height: '113px'
+  },
+  restart: {
+    marginTop: '2px'
+  },
+  clutch: {
+    color: 'crimson'
   }
 }

@@ -6,9 +6,20 @@ const save = (name, value) => (
     name, JSON.stringify(value))
 )
 
+const jsonParse = (json) => {
+  try {
+    return JSON.parse(json)
+  } catch (e) {}
+}
+
+const load = R.pipe(
+  AsyncStorage.getItem,
+  R.invoker(1, 'then')(jsonParse)
+)
+
 export default {
 
+  load,
   save: R.curryN(2, save),
-  load: AsyncStorage.getItem,
   remove: AsyncStorage.removeItem
 }

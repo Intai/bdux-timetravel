@@ -1,5 +1,6 @@
 import R from 'ramda'
 import React from 'react'
+import Button from './button-react'
 import Container from './container-react'
 //import History from './history-react'
 import TimeTravelAction from '../actions/timetravel-action'
@@ -12,29 +13,30 @@ const isDeclutch = R.pipe(
   R.prop('declutch')
 )
 
-/*const renderRestart = () => (
-  <button onClick={ TimeTravelAction.restart }
-    className={ cssModule({
-      'button': true }) }>
+const getContainerStyle = (timetravel) => (
+  Object.assign({}, styles.container,
+    !shouldShowHistory(timetravel) && styles.hideHistory
+  )
+)
+
+const renderRestart = () => (
+  <Button onClick={ TimeTravelAction.restart }
+    style={ styles.restart }>
     Restart
-  </button>
+  </Button>
 )
 
 const renderClutchButton = () => (
-  <button onClick={ TimeTravelAction.clutch }
-    className={ cssModule({
-      'button': true,
-      'clutch': true }) }>
+  <Button onClick={ TimeTravelAction.clutch }
+    style={ styles.clutch }>
     Clutch
-  </button>
+  </Button>
 )
 
 const renderDeclutchButton = () => (
-  <button onClick={ TimeTravelAction.declutch }
-    className={ cssModule({
-      'button': true }) }>
+  <Button onClick={ TimeTravelAction.declutch }>
     Declutch
-  </button>
+  </Button>
 )
 
 const renderClutch = R.ifElse(
@@ -44,34 +46,31 @@ const renderClutch = R.ifElse(
   renderClutchButton,
   // render a button to declutch.
   renderDeclutchButton
-)*/
+)
 
 const shouldShowHistory = (timetravel) => (
   timetravel && timetravel.showHistory
 )
 
-/*const getToggleHistoryText = (timetravel) => (
+const getToggleHistoryText = (timetravel) => (
   shouldShowHistory(timetravel)
     ? 'Hide History'
     : 'Show History'
 )
 
 const renderToggleHistory = (timetravel) => (
-  <button onClick={ TimeTravelAction.toggleHistory }
-    className={ cssModule({
-      'button': true }) }>
+  <Button onClick={ TimeTravelAction.toggleHistory }>
     { getToggleHistoryText(timetravel) }
-  </button>
-)*/
+  </Button>
+)
 
 export const TimeTravel = ({ timetravel }) => (
-  <Container style={[ styles.container,
-    !shouldShowHistory(timetravel) && styles.hideHistory ]}>
-    {/*{ renderRestart() }
+  <Container style={ getContainerStyle(timetravel) }>
+    { renderRestart() }
     { renderClutch(timetravel) }
     { renderToggleHistory(timetravel) }
 
-    <History />*/}
+    {/*<History />*/}
   </Container>
 )
 

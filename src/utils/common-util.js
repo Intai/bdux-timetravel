@@ -2,6 +2,10 @@ import R from 'ramda'
 
 const PREFIX = 'TT'
 
+const linebreaks = R.once(() => (
+  Array(25).join('\n')
+))
+
 const canUseDOM = () => (
   typeof window !== 'undefined'
     && window.document
@@ -35,6 +39,10 @@ export default {
       isReactNative
     ])
   ),
+
+  consoleClear: () => {
+    console.log(linebreaks())
+  },
 
   now: Date.now || (() => (
     (new Date()).getTime()

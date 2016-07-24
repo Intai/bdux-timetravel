@@ -35,7 +35,7 @@ const findTimeRecord = R.converge(
 
 const getTimeRecord = R.converge(
   R.defaultTo, [
-    R.identity,
+    R.set(R.lensProp('state'), null),
     findTimeRecord
   ]
 )
@@ -57,10 +57,6 @@ const isNotTimeTravel = R.pipe(
     ActionTypes.TIMETRAVEL_IDLE
   ]),
   R.not
-)
-
-const declutch = R.once(
-  TimeTravelAction.declutch
 )
 
 const mapToIdle = (args) => (
@@ -104,8 +100,7 @@ const getDeclutchProperty = (preStream) => (
     // declutch by default when resuming from session storage.
     historyInStorageStream
       .first()
-      .map(R.is(Array))
-      .doAction(R.when(R.identity, declutch)),
+      .map(R.is(Array)),
 
     // whether currently clutched to dispatcher.
     getDeclutchStream(preStream)

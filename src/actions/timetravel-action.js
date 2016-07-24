@@ -4,7 +4,6 @@ import ActionTypes from './action-types'
 import StoreNames from '../stores/store-names'
 import Common from '../utils/common-util'
 import Storage from '../utils/storage-util'
-import Browser from '../utils/browser-util'
 import { bindToDispatch } from 'bdux'
 
 const recordStream = new Bacon.Bus()
@@ -157,6 +156,28 @@ const findAnchor = R.converge(R.or, [
   R.last
 ])
 
+const createClutch = () => ({
+  type: ActionTypes.TIMETRAVEL_CLUTCH,
+  skipLog: true
+})
+
+const createDeclutch = () => ({
+  type: ActionTypes.TIMETRAVEL_DECLUTCH,
+  skipLog: true
+})
+
+const mergeDeclutchStream = (action) => (
+  Bacon.mergeAll(
+    Bacon.once(action),
+    Bacon.once(createDeclutch())
+  )
+)
+
+const declutchAfterResume = R.when(
+  R.propIs(Object, 'timeslice'),
+  mergeDeclutchStream
+)
+
 const createResumeToAnchor = () => (
   Bacon.combineTemplate({
     type: ActionTypes.TIMETRAVEL_REVERT,
@@ -166,8 +187,18 @@ const createResumeToAnchor = () => (
       .map(findAnchor),
     skipLog: true
   })
+  .flatMap(declutchAfterResume)
   .toEventStream()
-  .first()
+)
+
+const createRestart = () => (
+  Bacon.fromArray([{
+    type: ActionTypes.TIMETRAVEL_REVERT,
+    timeslice: [],
+    skipLog: true
+  },
+  // clutch by default after restart.
+  createClutch()])
 )
 
 const pushRecord = (record) => {
@@ -202,10 +233,16 @@ export const resume = R.ifElse(
   R.F
 )
 
-export const restart = () => {
-  Storage.remove('bduxHistory')
-    .then(Browser.reload)
-}
+export const restart = () => (
+  Bacon.fromPromise(
+    // remove history from session storage.
+    Storage.remove('bduxHistory')
+  )
+  // clear console logs.
+  .doAction(Common.consoleClear)
+  // reset all stores.
+  .flatMap(createRestart)
+)
 
 export const record = R.ifElse(
   // dont record time travel related action and store state.
@@ -222,15 +259,9 @@ export const revert = R.pipe(
   createRevert
 )
 
-export const declutch = () => ({
-  type: ActionTypes.TIMETRAVEL_DECLUTCH,
-  skipLog: true
-})
+export const declutch = createDeclutch
 
-export const clutch = () => ({
-  type: ActionTypes.TIMETRAVEL_CLUTCH,
-  skipLog: true
-})
+export const clutch = createClutch
 
 export const toggleHistory = () => ({
   type: ActionTypes.TIMETRAVEL_TOGGLE_HISTORY,
