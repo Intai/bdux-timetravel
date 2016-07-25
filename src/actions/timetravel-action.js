@@ -4,11 +4,17 @@ import ActionTypes from './action-types'
 import StoreNames from '../stores/store-names'
 import Common from '../utils/common-util'
 import Storage from '../utils/storage-util'
+import Browser from '../utils/browser-util'
 import { bindToDispatch } from 'bdux'
 
 const recordStream = new Bacon.Bus()
 const revertStream = new Bacon.Bus()
 const clearHistoryStream = new Bacon.Bus()
+
+const isNotEmptyArray = R.allPass([
+  R.is(Array),
+  R.complement(R.isEmpty)
+])
 
 const isActionEqual = R.curry((record, timeslice) => (
   timeslice.action.id === record.action.id
@@ -105,7 +111,7 @@ const historyInStorageStream = Bacon.fromPromise(
 
 const historyProperty = Bacon.update([],
   // restore history from session storage.
-  [historyInStorageStream.first().filter(R.is(Array))], R.nthArg(1),
+  [historyInStorageStream.first().filter(isNotEmptyArray)], R.nthArg(1),
   // accumulate a history of actions and store states.
   [recordStream], accumRecords,
   // anchor at a time slice in history.
@@ -241,6 +247,8 @@ export const restart = () => (
     // remove history from session storage.
     Storage.remove('bduxHistory')
   )
+  // reload if in a browser.
+  .doAction(Browser.reload)
   // clear console logs.
   .doAction(Common.consoleClear)
   // clear history of actions.
