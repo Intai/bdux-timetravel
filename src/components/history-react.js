@@ -1,23 +1,20 @@
-import R from 'ramda';
-import React from 'react';
-import TimeTravelAction from '../actions/timetravel-action';
-import TimeTravelStore from '../stores/timetravel-store';
-import classNames from 'classnames/bind';
-import styles from './history-react.scss';
-import { scrollIntoView } from './decorators/scroll-into-view-react.js';
+import R from 'ramda'
+import React from 'react'
+import TimeTravelAction from '../actions/timetravel-action'
+import TimeTravelStore from '../stores/timetravel-store'
+import styles from './history-style'
+import { scrollIntoView } from './decorators/scroll-into-view-react'
 import { createComponent } from 'bdux'
 
-const cssModule = classNames.bind(styles);
-
 const onRevert = R.curryN(2, (id) => {
-  TimeTravelAction.revert(id);
-});
+  TimeTravelAction.revert(id)
+})
 
 const hasHistory = R.pipe(
   R.defaultTo({}),
   R.prop('history'),
   R.is(Array)
-);
+)
 
 const formatValue = (value) => (
   // todo: expandable tree view.
@@ -25,51 +22,54 @@ const formatValue = (value) => (
     .replace(/([{,])/g, '$1\n  ')
     .replace(/"(.*)":/g, '$1: ')
     .replace(/}$/, ' }')
-);
+)
 
 const renderParam = (value, key) => (
   <li key={ key }>
     <span>{ key }</span>:&nbsp;
-    <span className={ cssModule({
-        'action-value': true }) }>
+    <span style={ styles.actionValue }>
       { formatValue(value) }
     </span>
   </li>
-);
+)
 
 const renderParams = R.pipe(
   R.omit(['type']),
   R.mapObjIndexed(renderParam),
   R.values
-);
+)
+
+const getListItemStyle = (record) => (
+  Object.assign({}, styles.item,
+    record.anchor && styles.anchor)
+)
 
 const renderRecord = (record) => (
   <li key={ record.id }
     data-anchor={ record.anchor }
-    className={ cssModule({
-      'item': true,
-      'anchor': record.anchor}) }>
+    style={ getListItemStyle(record) }>
 
     <div onClick={ onRevert(record.id) }
-      className={ cssModule({
-        'action-type': true }) }>
+      style={ styles.actionType }>
       { record.action.type }
     </div>
 
-    <ul className={ cssModule({
-        'action-params': true }) }>
+    <ul style={ styles.actionParams }>
       { renderParams(record.action) }
     </ul>
   </li>
-);
+)
+
+const getListStyle = (timetravel) => (
+  Object.assign({}, styles.list,
+    !timetravel.showHistory && styles.hide)
+)
 
 const renderHistory = (timetravel) => (
-  <ul className={ cssModule({
-      'hide': !timetravel.showHistory,
-      'list': true }) }>
+  <ul style={ getListStyle(timetravel) }>
     { R.map(renderRecord, timetravel.history) }
   </ul>
-);
+)
 
 const render = R.ifElse(
   // if there is a history array.
@@ -78,18 +78,18 @@ const render = R.ifElse(
   renderHistory,
   // otherwise, render nothing.
   R.always(<noscript />)
-);
+)
 
 const scrollAnchorIntoView = R.curry(
   scrollIntoView
-)(R.__, 'li[data-anchor="true"]');
+)(R.__, 'li[data-anchor="true"]')
 
 export const History = scrollAnchorIntoView(
   ({ timetravel }) => (
     render(timetravel)
   )
-);
+)
 
 export default createComponent(History, {
   timetravel: TimeTravelStore
-});
+})

@@ -8,6 +8,7 @@ import { bindToDispatch } from 'bdux'
 
 const recordStream = new Bacon.Bus()
 const revertStream = new Bacon.Bus()
+const clearHistoryStream = new Bacon.Bus()
 
 const isActionEqual = R.curry((record, timeslice) => (
   timeslice.action.id === record.action.id
@@ -108,7 +109,9 @@ const historyProperty = Bacon.update([],
   // accumulate a history of actions and store states.
   [recordStream], accumRecords,
   // anchor at a time slice in history.
-  [revertStream], addAnchor
+  [revertStream], addAnchor,
+  // clear the currently accumulated history.
+  [clearHistoryStream], R.always([])
 )
 // save in session storage.
 .doAction(Storage.save('bduxHistory'))
@@ -240,6 +243,8 @@ export const restart = () => (
   )
   // clear console logs.
   .doAction(Common.consoleClear)
+  // clear history of actions.
+  .doAction(() => clearHistoryStream.push(true))
   // reset all stores.
   .flatMap(createRestart)
 )

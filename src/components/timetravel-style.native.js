@@ -2,16 +2,18 @@ export default {
   container: {
     position: 'absolute',
     right: 2,
+    top: 2,
     bottom: 0,
     overflow: 'hidden',
     flexDirection: 'column',
     maxWidth: 316
   },
   hideHistory: {
-    height: 111
+    height: 111,
+    top: undefined
   },
   restart: {
-    marginTop: 2
+
   },
   clutch: {
     color: 'crimson'

@@ -2,7 +2,7 @@ import R from 'ramda'
 import React from 'react'
 import Button from './button-react'
 import Container from './container-react'
-//import History from './history-react'
+import History from './history-react'
 import TimeTravelAction from '../actions/timetravel-action'
 import TimeTravelStore from '../stores/timetravel-store'
 import styles from './timetravel-style'
@@ -15,7 +15,7 @@ const isDeclutch = R.pipe(
 
 const getContainerStyle = (timetravel) => (
   Object.assign({}, styles.container,
-    !shouldShowHistory(timetravel) && styles.hideHistory
+    !shouldShowHistory(timetravel) && styles.hideHistory || {}
   )
 )
 
@@ -70,7 +70,7 @@ export const TimeTravel = ({ timetravel }) => (
     { renderClutch(timetravel) }
     { renderToggleHistory(timetravel) }
 
-    {/*<History />*/}
+    <History />
   </Container>
 )
 
