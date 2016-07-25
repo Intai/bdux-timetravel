@@ -22,6 +22,11 @@ const isDeclutch = isAction(
   ActionTypes.TIMETRAVEL_DECLUTCH
 )
 
+const isNotEmptyArray = R.allPass([
+  R.is(Array),
+  R.complement(R.isEmpty)
+])
+
 const findRecordByName = (name, records) => (
   R.find(R.propEq('name', name), records || [])
 )
@@ -100,7 +105,7 @@ const getDeclutchProperty = (preStream) => (
     // declutch by default when resuming from session storage.
     historyInStorageStream
       .first()
-      .map(R.is(Array)),
+      .map(isNotEmptyArray),
 
     // whether currently clutched to dispatcher.
     getDeclutchStream(preStream)
