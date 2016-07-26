@@ -44,9 +44,11 @@ const getListItemStyle = (record) => (
 const renderRecord = (record) => (
   <View style={ getListItemStyle(record) }>
     <TouchableOpacity onPress={ onRevert(record.id) }>
-      <Text style={ styles.actionType }>
-        { record.action.type }
-      </Text>
+      <View style={ styles.actionTypeWrap }>
+        <Text style={ styles.actionType }>
+          { record.action.type }
+        </Text>
+      </View>
     </TouchableOpacity>
 
     <View style={ styles.actionParams }>
@@ -55,10 +57,18 @@ const renderRecord = (record) => (
   </View>
 )
 
-const createHistoryDataSource = (timetravel) => (
-  new ListView.DataSource({ rowHasChanged: R.complement(R.eqBy(R.prop('id'))) })
-    .cloneWithRows(timetravel.history)
+const updateHistoryDataSource = (dataSource, timetravel) => (
+  dataSource.cloneWithRows(timetravel.history)
 )
+
+const createHistoryDataSource = (() => {
+  let dataSource = new ListView.DataSource({
+    rowHasChanged: R.complement(R.eqBy(R.prop('id'))) })
+
+  return (timetravel) => (
+    dataSource = updateHistoryDataSource(dataSource, timetravel)
+  )
+})()
 
 const renderHistory = (timetravel) => (
   <ListView style={ styles.list }

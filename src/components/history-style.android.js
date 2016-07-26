@@ -7,16 +7,18 @@ export default {
   anchor: {
     backgroundColor: 'lightcyan'
   },
-  actionType: {
-    fontFamily: 'Droid Sans',
-    fontSize: 14,
-    fontWeight: 'bold',
+  actionTypeWrap: {
     backgroundColor: 'rgba(0,0,0,0.2)',
-    color: 'rgba(0,0,0,0.8)',
     paddingTop: 10,
     paddingRight: 20,
     paddingBottom: 10,
     paddingLeft: 10
+  },
+  actionType: {
+    color: 'rgba(0,0,0,0.8)',
+    fontFamily: 'Droid Sans',
+    fontSize: 14,
+    fontWeight: 'bold'
   },
   actionParams: {
     backgroundColor: 'rgba(0,0,0,0.1)',
@@ -27,6 +29,7 @@ export default {
     paddingLeft: 10
   },
   actionValue: {
+    color: 'rgba(0,0,0,0.8)',
     fontFamily: 'Droid Sans',
     fontSize: 14
   }
