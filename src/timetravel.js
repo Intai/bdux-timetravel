@@ -27,6 +27,10 @@ const isNotEmptyArray = R.allPass([
   R.complement(R.isEmpty)
 ])
 
+const hasTimeslice = R.path(
+  ['action', 'timeslice']
+)
+
 const findRecordByName = (name, records) => (
   R.find(R.propEq('name', name), records || [])
 )
@@ -46,7 +50,7 @@ const getTimeRecord = R.converge(
 )
 
 const mapTimeRevert = R.when(
-  isRevert,
+  R.allPass([isRevert, hasTimeslice]),
   getTimeRecord
 )
 
