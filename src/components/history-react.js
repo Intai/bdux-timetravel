@@ -11,8 +11,7 @@ const onRevert = R.curryN(2, (id) => {
 })
 
 const hasHistory = R.pipe(
-  R.defaultTo({}),
-  R.prop('history'),
+  R.path(['timetravel', 'history']),
   R.is(Array)
 )
 
@@ -44,9 +43,9 @@ const getListItemStyle = (record) => (
     record.anchor && styles.anchor)
 )
 
-const renderRecord = (record) => (
+const renderRecord = R.curry((record, refAnchor) => (
   <li key={ record.id }
-    data-anchor={ record.anchor }
+    ref={ record.anchor && refAnchor }
     style={ getListItemStyle(record) }>
 
     <div onClick={ onRevert(record.id) }
@@ -58,16 +57,16 @@ const renderRecord = (record) => (
       { renderParams(record.action) }
     </ul>
   </li>
-)
+))
 
 const getListStyle = (timetravel) => (
   Object.assign({}, styles.list,
     !timetravel.showHistory && styles.hide)
 )
 
-const renderHistory = (timetravel) => (
-  <ul style={ getListStyle(timetravel) }>
-    { R.map(renderRecord, timetravel.history) }
+const renderHistory = ({ timetravel, refList, refAnchor }) => (
+  <ul ref={ refList } style={ getListStyle(timetravel) }>
+    { R.map(renderRecord(R.__, refAnchor), timetravel.history) }
   </ul>
 )
 
@@ -77,17 +76,15 @@ const render = R.ifElse(
   // render the history.
   renderHistory,
   // otherwise, render nothing.
-  R.always(<noscript />)
+  R.F
 )
 
-const scrollAnchorIntoView = R.curry(
-  scrollIntoView
-)(R.__, 'li[data-anchor="true"]')
-
-export const History = scrollAnchorIntoView(
-  ({ timetravel }) => (
-    render(timetravel)
-  )
+export const History = scrollIntoView(
+  React.createClass({
+    render() {
+      return render(this.props)
+    }
+  })
 )
 
 export default createComponent(History, {

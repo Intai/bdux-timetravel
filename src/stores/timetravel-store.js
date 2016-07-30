@@ -35,10 +35,30 @@ const mergeState = (name, func) => (
   ])
 )
 
+const hasNoAnchor = R.complement(
+  R.find(R.prop('anchor'))
+)
+
+const setLastAnchor = R.converge(
+  R.adjust(R.flip(R.merge)({ anchor: true })), [
+    R.pipe(R.length, R.dec),
+    R.identity
+  ]
+)
+
+const anchorLastRecord = R.when(
+  hasNoAnchor,
+  setLastAnchor
+)
+
 const getHistory = R.when(
   isHistory,
   mergeState('history',
-    R.path(['action', 'history']))
+    R.pipe(
+      R.path(['action', 'history']),
+      anchorLastRecord
+    )
+  )
 )
 
 const getClutch = R.when(

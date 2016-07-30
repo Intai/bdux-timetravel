@@ -1,14 +1,14 @@
 import R from 'ramda'
-import React from 'react';
+import React from 'react'
 import { TouchableOpacity, ListView, View, Text } from 'react-native'
 import TimeTravelAction from '../actions/timetravel-action'
-import TimeTravelStore from '../stores/timetravel-store';
+import TimeTravelStore from '../stores/timetravel-store'
 import styles from './history-style'
+import { scrollIntoView } from './decorators/scroll-into-view-react'
 import { createComponent } from 'bdux'
 
 const hasHistory = R.pipe(
-  R.defaultTo({}),
-  R.prop('history'),
+  R.path(['timetravel', 'history']),
   R.is(Array)
 )
 
@@ -22,6 +22,11 @@ const formatValue = (value) => (
     .replace(/([{,])/g, '$1\n  ')
     .replace(/"(.*)":/g, '$1: ')
     .replace(/}$/, ' }')
+)
+
+const isEqualRecord = (record, other) => (
+  record.id === other.id
+    && !record.anchor === !other.anchor
 )
 
 const renderParam = (value, key) => (
@@ -41,8 +46,10 @@ const getListItemStyle = (record) => (
     record.anchor && styles.anchor || {})
 )
 
-const renderRecord = (record) => (
-  <View style={ getListItemStyle(record) }>
+const renderRecord = R.curry((record, refAnchor) => (
+  <View ref={ record.anchor && refAnchor }
+    style={ getListItemStyle(record) }>
+
     <TouchableOpacity onPress={ onRevert(record.id) }>
       <View style={ styles.actionTypeWrap }>
         <Text style={ styles.actionType }>
@@ -55,7 +62,7 @@ const renderRecord = (record) => (
       { renderParams(record.action) }
     </View>
   </View>
-)
+))
 
 const updateHistoryDataSource = (dataSource, timetravel) => (
   dataSource.cloneWithRows(timetravel.history)
@@ -63,31 +70,31 @@ const updateHistoryDataSource = (dataSource, timetravel) => (
 
 const createHistoryDataSource = (() => {
   let dataSource = new ListView.DataSource({
-    rowHasChanged: R.complement(R.eqBy(R.prop('id'))) })
+    rowHasChanged: R.complement(isEqualRecord) })
 
   return (timetravel) => (
     dataSource = updateHistoryDataSource(dataSource, timetravel)
   )
 })()
 
-const renderHistory = (timetravel) => (
-  <ListView style={ styles.list }
-    dataSource={ createHistoryDataSource(timetravel) }
-    renderRow={ renderRecord }
-    enableEmptySections={ true } />
+const renderHistory = ({ timetravel, refWrap, refList, refAnchor }) => (
+  <View ref={ refWrap } style={ styles.wrap }>
+    <ListView ref={ refList } style={ styles.list }
+      dataSource={ createHistoryDataSource(timetravel) }
+      renderRow={ renderRecord(R.__, refAnchor) }
+      enableEmptySections={ true } />
+  </View>
 )
 
-const render = R.ifElse(
-  // if there is a history array.
-  hasHistory,
-  // render the history.
-  renderHistory,
-  // otherwise, render nothing.
-  R.always(<View />)
-)
-
-export const History = ({ timetravel }) => (
-  render(timetravel)
+export const History = scrollIntoView(
+  R.ifElse(
+    // if there is a history array.
+    hasHistory,
+    // render the history.
+    renderHistory,
+    // otherwise, render nothing.
+    R.F
+  )
 )
 
 export default createComponent(History, {

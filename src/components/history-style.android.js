@@ -1,8 +1,10 @@
 export default {
+  wrap: {
+    flex: 1
+  },
   list: {
     overflow: 'hidden',
-    flexDirection: 'column',
-    flex: 1
+    flexDirection: 'column'
   },
   anchor: {
     backgroundColor: 'lightcyan'
