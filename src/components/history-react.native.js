@@ -78,8 +78,12 @@ const createHistoryDataSource = (() => {
 })()
 
 const renderHistory = ({ timetravel, refWrap, refList, refAnchor }) => (
-  <View ref={ refWrap } style={ styles.wrap }>
-    <ListView ref={ refList } style={ styles.list }
+  <View ref={ refWrap }
+    style={ styles.wrap }
+    collapsable={ false }>
+
+    <ListView ref={ refList }
+      style={ styles.list }
       dataSource={ createHistoryDataSource(timetravel) }
       renderRow={ renderRecord(R.__, refAnchor) }
       enableEmptySections={ true } />
