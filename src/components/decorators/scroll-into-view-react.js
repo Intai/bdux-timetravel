@@ -5,29 +5,36 @@ const getDisplayName = (Component) => (
   Component.displayName || Component.name || 'Component'
 )
 
-export const calcScrollTop = ({ scrollTop, listHeight, anchorTop, anchorHeight }) => {
-  // over the top.
-  if (anchorTop < scrollTop) {
-    return anchorTop
-  }
-  else {
-    let offset = anchorTop - listHeight + anchorHeight
+const isAnchorOverTop = ({ scrollTop, anchorTop }) => (
+  anchorTop < scrollTop
+)
 
-    // below the bottom.
-    if (offset > scrollTop) {
-      // too big to fit into the view.
-      if (anchorHeight > listHeight) {
-        return anchorTop
-      }
+const isAnchorBelowBottom = ({ scrollTop, listHeight, anchorTop, anchorHeight }) => (
+  anchorTop + anchorHeight > scrollTop + listHeight
+)
 
-      return offset
-    }
-    // already in view.
-    else {
-      return -1
-    }
-  }
-}
+const isScrollBelowBottom = ({ scrollHeight, listHeight, anchorTop }) => (
+  anchorTop + listHeight > scrollHeight
+)
+
+const calcAnchorBottom = ({ listHeight, anchorTop, anchorHeight }) => (
+  (anchorHeight > listHeight)
+    // too big to fit into the view.
+    ? anchorTop
+    // anchor at the bottom.
+    : (anchorTop + anchorHeight - listHeight)
+)
+
+const calcScrollBottom = ({ scrollHeight, listHeight }) => (
+  Math.max(0, scrollHeight - listHeight)
+)
+
+export const calcScrollTop = R.cond([
+  [isAnchorOverTop, R.prop('anchorTop')],
+  [isAnchorBelowBottom, calcAnchorBottom],
+  [isScrollBelowBottom, calcScrollBottom],
+  [R.T, R.always(-1)]
+])
 
 const bindMouseEvents = R.once((node, setHover) => {
   node.addEventListener('mouseenter', () => setHover(true))
@@ -63,6 +70,7 @@ const getScrollTop = ({ list, anchor }) => ({
   list: list,
   scrollTop: calcScrollTop({
     scrollTop: list.scrollTop,
+    scrollHeight: list.scrollHeight,
     listHeight: list.offsetHeight,
     anchorTop: anchor.offsetTop,
     anchorHeight: anchor.offsetHeight

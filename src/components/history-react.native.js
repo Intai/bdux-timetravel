@@ -65,7 +65,8 @@ const renderRecord = R.curry((record, refAnchor) => (
 ))
 
 const updateHistoryDataSource = (dataSource, timetravel) => (
-  dataSource.cloneWithRows(timetravel.history)
+  dataSource.cloneWithRows(timetravel.history,
+    R.reverse(R.range(0, timetravel.history.length)))
 )
 
 const createHistoryDataSource = (() => {
@@ -77,12 +78,13 @@ const createHistoryDataSource = (() => {
   )
 })()
 
-const renderHistory = ({ timetravel, refWrap, refList, refAnchor }) => (
+const renderHistory = ({ timetravel, refWrap, refList, refAnchor, ...props }) => (
   <View ref={ refWrap }
     style={ styles.wrap }
     collapsable={ false }>
 
-    <ListView ref={ refList }
+    <ListView { ...props }
+      ref={ refList }
       style={ styles.list }
       dataSource={ createHistoryDataSource(timetravel) }
       renderRow={ renderRecord(R.__, refAnchor) }

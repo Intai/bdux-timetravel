@@ -12,6 +12,11 @@ const hasListAnchor = R.allPass([
   R.prop('anchor')
 ])
 
+const hasListNoAnchor = R.allPass([
+  R.prop('list'),
+  R.complement(R.prop('anchor'))
+])
+
 const scrollTo = (list, scrollTop) => {
   if (scrollTop >= 0) {
     list.scrollTo({
@@ -46,7 +51,8 @@ const getAnchorDimension = ({ list, anchor, listHeight }) => (
           listHeight,
           anchorTop: y,
           anchorHeight: height,
-          scrollTop: list.scrollProperties.offset
+          scrollTop: list.scrollProperties.offset,
+          scrollHeight: list.scrollProperties.contentLength
         })
       }
     )
@@ -85,14 +91,9 @@ const scrollToDiffAnchor = R.pipeP(
   )
 )
 
-const defer = (func) => (...args) => {
-  setTimeout(
-    R.partial(func, args), 0)
-}
-
 const scrollToAnchor = R.when(
   hasListAnchor,
-  defer(scrollToDiffAnchor)
+  scrollToDiffAnchor
 )
 
 export const scrollIntoView = (Component) => (
@@ -101,7 +102,7 @@ export const scrollIntoView = (Component) => (
     getDefaultProps: () => ({}),
     getInitialState: () => ({}),
 
-    componentDidUpdate() {
+    onLayout() {
       scrollToAnchor({
         wrap: this.wrap,
         list: this.list,
@@ -114,7 +115,8 @@ export const scrollIntoView = (Component) => (
         Component, Object.assign({}, this.props, {
           refWrap: node => this.wrap = node,
           refList: node => this.list = node,
-          refAnchor: node => this.anchor = node
+          refAnchor: node => this.anchor = node,
+          onLayout: this.onLayout
         })
       )
     }
