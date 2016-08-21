@@ -117,7 +117,7 @@ const getDeclutchProperty = (preStream) => (
   .toProperty()
 )
 
-const getPreOutputStream = (preStream) => (
+const getPreOutputOnClient = (preStream) => (
   Bacon.when([
     // wait for storage.
     preStream.holdWhen(historyInStorageValve),
@@ -129,14 +129,20 @@ const getPreOutputStream = (preStream) => (
   .map(mapTimeRevert)
 )
 
+const getPreOutput = R.ifElse(
+  Common.isOnClient,
+  getPreOutputOnClient,
+  R.identity
+)
+
 export const getPreReduce = () => {
   let preStream = new Bacon.Bus()
 
   // start recording.
-  TimeTravelAction.start();
+  TimeTravelAction.start()
 
   return {
     input: preStream,
-    output: getPreOutputStream(preStream)
+    output: getPreOutput(preStream)
   }
 }
