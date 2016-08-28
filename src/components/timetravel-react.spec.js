@@ -1,20 +1,14 @@
-import chai from 'chai';
-import sinon from 'sinon';
-import React from 'react';
-import TestUtils from 'react-addons-test-utils';
-import { TimeTravel } from './timetravel-react';
-
-const render = () => {
-  let renderer = TestUtils.createRenderer();
-  renderer.render(<TimeTravel />);
-  return renderer.getRenderOutput();
-};
+import chai from 'chai'
+import sinon from 'sinon'
+import React from 'react'
+import { shallow } from 'enzyme'
+import { TimeTravel } from './timetravel-react'
 
 describe('TimeTravel Component', () => {
 
   it('should wrap inside a container', () => {
-    let output = render();
-    chai.expect(output.props.className).to.contain('container');
-  });
+    const wrapper = shallow(<TimeTravel />)
+    chai.expect(wrapper.name()).to.equal('Container')
+  })
 
-});
+})
