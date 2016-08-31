@@ -13,9 +13,13 @@ const isDeclutch = R.pipe(
   R.prop('declutch')
 )
 
+const shouldShowHistory = (timetravel) => (
+  timetravel && timetravel.showHistory
+)
+
 const getContainerStyle = (timetravel) => (
-  Object.assign({}, styles.container,
-    !shouldShowHistory(timetravel) && styles.hideHistory || {}
+  R.merge(styles.container,
+    !shouldShowHistory(timetravel) && styles.hideHistory
   )
 )
 
@@ -46,10 +50,6 @@ const renderClutch = R.ifElse(
   renderClutchButton,
   // render a button to declutch.
   renderDeclutchButton
-)
-
-const shouldShowHistory = (timetravel) => (
-  timetravel && timetravel.showHistory
 )
 
 const getToggleHistoryText = (timetravel) => (
