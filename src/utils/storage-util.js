@@ -11,7 +11,9 @@ const load = (name) => {
   try {
     value = JSON.parse(window.sessionStorage
       .getItem(name))
-  } catch (e) {}
+  } catch (e) {
+    // continue regardless of error.
+  }
 
   return Promise.resolve(value)
 }

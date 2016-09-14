@@ -2,9 +2,12 @@ import R from 'ramda'
 import Bacon from 'baconjs'
 import Common from './utils/common-util'
 import Storage from './utils/storage-util'
-import StoreNames from './stores/store-names'
 import ActionTypes from './actions/action-types'
 import TimeTravelAction from './actions/timetravel-action.js'
+
+const isOnClient = () => (
+  Common.isOnClient()
+)
 
 const isAction = R.pathEq(
   ['action', 'type']
@@ -97,17 +100,32 @@ const getDeclutchStream = (preStream) => (
   )
 )
 
-const historyInStorageStream = Bacon.fromPromise(
-  Storage.load('bduxHistory'))
+const createHistoryStream = () => (
+  Bacon.fromPromise(
+    Storage.load('bduxHistory'))
+)
 
-const historyInStorageValve = historyInStorageStream
-  .map(R.F)
-  .toProperty(true)
+export const historyInStorageStream = (() => {
+  let stream = createHistoryStream()
+
+  return {
+    get: () => stream,
+    reload: () => (
+      stream = createHistoryStream()
+    )
+  }
+})()
+
+const createHistoryValve = () => (
+  historyInStorageStream.get()
+    .map(R.F)
+    .toProperty(true)
+)
 
 const getDeclutchProperty = (preStream) => (
   Bacon.mergeAll(
     // declutch by default when resuming from session storage.
-    historyInStorageStream
+    historyInStorageStream.get()
       .first()
       .map(isNotEmptyArray),
 
@@ -120,7 +138,7 @@ const getDeclutchProperty = (preStream) => (
 const getPreOutputOnClient = (preStream) => (
   Bacon.when([
     // wait for storage.
-    preStream.holdWhen(historyInStorageValve),
+    preStream.holdWhen(createHistoryValve()),
     // filter out actions while declutched.
     getDeclutchProperty(preStream)], mapDeclutchToIdle)
   // record the action and store states.
@@ -130,7 +148,7 @@ const getPreOutputOnClient = (preStream) => (
 )
 
 const getPreOutput = R.ifElse(
-  Common.isOnClient,
+  isOnClient,
   getPreOutputOnClient,
   R.identity
 )

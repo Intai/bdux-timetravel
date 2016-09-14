@@ -282,12 +282,12 @@ export const toggleHistory = () => ({
 })
 
 export default bindToDispatch({
-  restart,
   start,
-  resume,
   record,
+  resume,
+  restart,
   revert,
-  declutch,
   clutch,
+  declutch,
   toggleHistory
 })
