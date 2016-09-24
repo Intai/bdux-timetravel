@@ -12,22 +12,39 @@ const canUseDOM = () => (
     && window.document.createElement
 )
 
+const canUseDOMOnce = R.once(
+  canUseDOM
+)
+
 const isReactNative = () => (
   typeof window !== 'undefined'
     && window.navigator
     && window.navigator.product === 'ReactNative'
 )
 
+const consoleClear = () => {
+  console.log(linebreaks())
+}
+
 const mapToKeyValue = (obj, key) => {
   obj[key] = PREFIX + '_' + key
   return obj
 }
 
+const createInstance = (factory) => {
+  let instance = factory()
+
+  return {
+    get: () => instance,
+    reload: () => (
+      instance = factory()
+    )
+  }
+}
+
 export default {
 
-  canUseDOM: R.once(
-    canUseDOM
-  ),
+  canUseDOM: canUseDOMOnce,
 
   isReactNative: R.once(
     isReactNative
@@ -40,9 +57,10 @@ export default {
     ])
   ),
 
-  consoleClear: () => {
-    console.log(linebreaks())
-  },
+  consoleClear: R.when(
+    canUseDOMOnce,
+    consoleClear
+  ),
 
   now: Date.now || (() => (
     (new Date()).getTime()
@@ -52,5 +70,9 @@ export default {
   // object keys and prefixed values.
   createObjOfConsts: R.reduce(
     mapToKeyValue, {}
-  )
+  ),
+
+  // return a getter and a reload
+  // function to create a new instance.
+  createInstance
 }

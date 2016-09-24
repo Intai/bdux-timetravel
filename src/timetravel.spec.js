@@ -57,11 +57,11 @@ describe('TimeTravel Middleware', () => {
 
   describe('in browser', () => {
 
-    let promise
+    let promiseLoad
 
     beforeEach(() => {
       sandbox.stub(Common, 'isOnClient').returns(true)
-      promise = sandbox.stub(Storage, 'load').returnsPromise()
+      promiseLoad = sandbox.stub(Storage, 'load').returnsPromise()
       TimeTravel.historyInStorageStream.reload()
     })
 
@@ -80,7 +80,7 @@ describe('TimeTravel Middleware', () => {
 
       pluggable.output.onValue()
       pluggable.input.push(value)
-      promise.resolves([])
+      promiseLoad.resolves([])
       chai.expect(TimeTravelAction.record.calledOnce).to.be.true
       chai.expect(TimeTravelAction.record.lastCall.args[0]).to.eql(value)
     })
@@ -91,7 +91,7 @@ describe('TimeTravel Middleware', () => {
 
       pluggable.output.onValue(callback)
       pluggable.input.push({})
-      promise.rejects()
+      promiseLoad.rejects()
       chai.expect(callback.called).to.be.false
     })
 
@@ -101,7 +101,7 @@ describe('TimeTravel Middleware', () => {
 
       pluggable.output.onValue(callback)
       pluggable.input.push({})
-      promise.resolves([])
+      promiseLoad.resolves([])
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.eql({})
     })
@@ -112,7 +112,7 @@ describe('TimeTravel Middleware', () => {
 
       pluggable.output.onValue(callback)
       pluggable.input.push({})
-      promise.resolves([{}])
+      promiseLoad.resolves([{}])
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
         .and.has.property('type', ActionTypes.TIMETRAVEL_IDLE)
@@ -123,7 +123,7 @@ describe('TimeTravel Middleware', () => {
       const callback = sinon.stub()
 
       pluggable.output.onValue(callback)
-      promise.resolves([{}])
+      promiseLoad.resolves([{}])
       pluggable.input.push({})
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
@@ -140,7 +140,7 @@ describe('TimeTravel Middleware', () => {
       }
 
       pluggable.output.onValue(callback)
-      promise.resolves([{}])
+      promiseLoad.resolves([{}])
       pluggable.input.push(clutch)
       pluggable.input.push({})
       chai.expect(callback.calledTwice).to.be.true
@@ -157,7 +157,7 @@ describe('TimeTravel Middleware', () => {
       }
 
       pluggable.output.onValue(callback)
-      promise.resolves([])
+      promiseLoad.resolves([])
       pluggable.input.push(declutch)
       pluggable.input.push({})
       chai.expect(callback.calledTwice).to.be.true
@@ -175,7 +175,7 @@ describe('TimeTravel Middleware', () => {
       }
 
       pluggable.output.onValue(callback)
-      promise.resolves([{}])
+      promiseLoad.resolves([{}])
       pluggable.input.push(toggle)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
@@ -192,7 +192,7 @@ describe('TimeTravel Middleware', () => {
       }
 
       pluggable.output.onValue(callback)
-      promise.resolves([{}])
+      promiseLoad.resolves([{}])
       pluggable.input.push(history)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
@@ -209,7 +209,7 @@ describe('TimeTravel Middleware', () => {
       }
 
       pluggable.output.onValue(callback)
-      promise.resolves([{}])
+      promiseLoad.resolves([{}])
       pluggable.input.push(revert)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
@@ -226,7 +226,7 @@ describe('TimeTravel Middleware', () => {
       }
 
       pluggable.output.onValue(callback)
-      promise.resolves([{}])
+      promiseLoad.resolves([{}])
       pluggable.input.push(declutch)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
@@ -243,7 +243,7 @@ describe('TimeTravel Middleware', () => {
       }
 
       pluggable.output.onValue(callback)
-      promise.resolves([{}])
+      promiseLoad.resolves([{}])
       pluggable.input.push(clutch)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
@@ -267,7 +267,7 @@ describe('TimeTravel Middleware', () => {
       }
 
       pluggable.output.onValue(callback)
-      promise.resolves([{}])
+      promiseLoad.resolves([{}])
       pluggable.input.push(revert)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('state')
@@ -291,7 +291,7 @@ describe('TimeTravel Middleware', () => {
       }
 
       pluggable.output.onValue(callback)
-      promise.resolves([{}])
+      promiseLoad.resolves([{}])
       pluggable.input.push(revert)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('state')
@@ -310,7 +310,7 @@ describe('TimeTravel Middleware', () => {
       }
 
       pluggable.output.onValue(callback)
-      promise.resolves([{}])
+      promiseLoad.resolves([{}])
       pluggable.input.push(revert)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('state')

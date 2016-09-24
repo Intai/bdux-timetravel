@@ -11,13 +11,18 @@ const recordStream = new Bacon.Bus()
 const revertStream = new Bacon.Bus()
 const clearHistoryStream = new Bacon.Bus()
 
+const isOnClient = () => (
+  Common.isOnClient()
+)
+
 const isNotEmptyArray = R.allPass([
   R.is(Array),
   R.complement(R.isEmpty)
 ])
 
 const isActionEqual = R.curry((record, timeslice) => (
-  timeslice.action.id === record.action.id
+  timeslice.action && record.action
+    && timeslice.action.id === record.action.id
 ))
 
 const hasActionInHistory = (history, record) => (
@@ -106,27 +111,39 @@ const addAnchor = (history, id) => (
   )
 )
 
-const historyInStorageStream = Bacon.fromPromise(
-  Storage.load('bduxHistory'))
-
-const historyProperty = Bacon.update([],
-  // restore history from session storage.
-  [historyInStorageStream.first().filter(isNotEmptyArray)], R.nthArg(1),
-  // accumulate a history of actions and store states.
-  [recordStream], accumRecords,
-  // anchor at a time slice in history.
-  [revertStream], addAnchor,
-  // clear the currently accumulated history.
-  [clearHistoryStream], R.always([])
+const createHistoryStream = () => (
+  Bacon.fromPromise(
+    Storage.load('bduxHistory'))
 )
-// save in session storage.
-.doAction(Storage.save('bduxHistory'))
+
+export const historyInStorageStream = Common.createInstance(
+  createHistoryStream
+)
+
+const createHistoryProperty = () => (
+  Bacon.update([],
+    // restore history from session storage.
+    [historyInStorageStream.get().first().filter(isNotEmptyArray)], R.nthArg(1),
+    // accumulate a history of actions and store states.
+    [recordStream], accumRecords,
+    // anchor at a time slice in history.
+    [revertStream], addAnchor,
+    // clear the currently accumulated history.
+    [clearHistoryStream], R.always([])
+  )
+  // save in session storage.
+  .doAction(Storage.save('bduxHistory'))
+)
+
+export const historyProperty = Common.createInstance(
+  createHistoryProperty
+)
 
 const onceThenNull = (func) => {
   let count = 0
-  return (...args) => (
+  return () => (
     (count++ <= 0)
-      ? func.apply(func, args)
+      ? func()
       : null
   )
 }
@@ -151,7 +168,7 @@ const isNotTimeStore = R.complement(
 const createRevert = (id) => (
   Bacon.combineTemplate({
     type: ActionTypes.TIMETRAVEL_REVERT,
-    timeslice: historyProperty
+    timeslice: historyProperty.get()
       // find the time slice by id to revert to.
       .map(R.find(R.propEq('id', id))),
     skipLog: true
@@ -176,10 +193,10 @@ const createDeclutch = () => ({
 })
 
 const mergeDeclutchStream = (action) => (
-  Bacon.mergeAll(
-    Bacon.once(action),
-    Bacon.once(createDeclutch())
-  )
+  Bacon.fromArray([
+    action,
+    createDeclutch()
+  ])
 )
 
 const declutchAfterResume = R.when(
@@ -190,7 +207,7 @@ const declutchAfterResume = R.when(
 const createResumeToAnchor = () => (
   Bacon.combineTemplate({
     type: ActionTypes.TIMETRAVEL_REVERT,
-    timeslice: historyInStorageStream
+    timeslice: historyInStorageStream.get()
       // find the anchor time slice to revert to.
       .map(R.defaultTo([]))
       .map(findAnchor),
@@ -203,7 +220,7 @@ const createResumeToAnchor = () => (
 const createRestart = () => (
   Bacon.fromArray([{
     type: ActionTypes.TIMETRAVEL_REVERT,
-    timeslice: [],
+    timeslice: undefined,
     skipLog: true
   },
   // clutch by default after restart.
@@ -222,22 +239,21 @@ const createStartStream = () => (
   // create an action when history changes.
   Bacon.combineTemplate({
     type: ActionTypes.TIMETRAVEL_HISTORY,
-    history: historyProperty,
+    history: historyProperty.get(),
     skipLog: true
   })
   .changes()
 )
 
-// start only once.
-export const start = onceThenNull(R.ifElse(
-  Common.isOnClient,
+export const start = R.ifElse(
+  isOnClient,
   createStartStream,
   R.F
-))
+)
 
 // reapply the anchor action and store states.
 export const resume = R.ifElse(
-  Common.isOnClient,
+  isOnClient,
   createResumeToAnchor,
   R.F
 )
@@ -282,7 +298,7 @@ export const toggleHistory = () => ({
 })
 
 export default bindToDispatch({
-  start,
+  start: onceThenNull(start),
   record,
   resume,
   restart,

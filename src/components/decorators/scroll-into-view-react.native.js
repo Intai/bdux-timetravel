@@ -12,11 +12,6 @@ const hasListAnchor = R.allPass([
   R.prop('anchor')
 ])
 
-const hasListNoAnchor = R.allPass([
-  R.prop('list'),
-  R.complement(R.prop('anchor'))
-])
-
 const scrollTo = (list, scrollTop) => {
   if (scrollTop >= 0) {
     list.scrollTo({
@@ -66,7 +61,7 @@ const hasListHeight = R.propSatisfies(
 const isDiffAnchor = (() => {
   let prev = 0
 
-  return ({ anchor, listHeight }) => (
+  return ({ anchor }) => (
     (prev !== anchor)
       ? prev = anchor
       : false

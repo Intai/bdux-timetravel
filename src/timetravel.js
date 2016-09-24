@@ -105,16 +105,9 @@ const createHistoryStream = () => (
     Storage.load('bduxHistory'))
 )
 
-export const historyInStorageStream = (() => {
-  let stream = createHistoryStream()
-
-  return {
-    get: () => stream,
-    reload: () => (
-      stream = createHistoryStream()
-    )
-  }
-})()
+export const historyInStorageStream = Common.createInstance(
+  createHistoryStream
+)
 
 const createHistoryValve = () => (
   historyInStorageStream.get()

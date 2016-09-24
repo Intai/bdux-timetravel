@@ -9,7 +9,9 @@ const save = (name, value) => (
 const jsonParse = (json) => {
   try {
     return JSON.parse(json)
-  } catch (e) {}
+  } catch (e) {
+    // continue regardless of error.
+  }
 }
 
 const load = R.pipe(
