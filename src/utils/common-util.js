@@ -6,7 +6,7 @@ const linebreaks = R.once(() => (
   Array(25).join('\n')
 ))
 
-const canUseDOM = () => (
+export const canUseDOM = () => (
   typeof window !== 'undefined'
     && window.document
     && window.document.createElement
@@ -16,15 +16,19 @@ const canUseDOMOnce = R.once(
   canUseDOM
 )
 
-const isReactNative = () => (
+export const isReactNative = () => (
   typeof window !== 'undefined'
     && window.navigator
     && window.navigator.product === 'ReactNative'
 )
 
-const consoleClear = () => {
+export const consoleClear = () => {
   console.log(linebreaks())
 }
+
+export const getTimeFunc = () => (
+  Date.now || (() => new Date().getTime())
+)
 
 const mapToKeyValue = (obj, key) => {
   obj[key] = PREFIX + '_' + key
@@ -62,14 +66,12 @@ export default {
     consoleClear
   ),
 
-  now: Date.now || (() => (
-    (new Date()).getTime()
-  )),
+  now: getTimeFunc(),
 
   // map an array of strings to
   // object keys and prefixed values.
-  createObjOfConsts: R.reduce(
-    mapToKeyValue, {}
+  createObjOfConsts: (values) => R.reduce(
+    mapToKeyValue, {}, values
   ),
 
   // return a getter and a reload
