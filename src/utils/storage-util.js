@@ -1,13 +1,13 @@
 import R from 'ramda'
 import Common from './common-util'
 
-const save = (name, value) => (
+export const save = (name, value) => (
   Promise.resolve(window.sessionStorage
     .setItem(name, JSON.stringify(value)))
 )
 
-const load = (name) => {
-  var value
+export const load = (name) => {
+  let value
   try {
     value = JSON.parse(window.sessionStorage
       .getItem(name))
@@ -18,12 +18,12 @@ const load = (name) => {
   return Promise.resolve(value)
 }
 
-const remove = (name) => (
+export const remove = (name) => (
   Promise.resolve(window.sessionStorage
     .removeItem(name))
 )
 
-const empty = () => (
+export const noop = () => (
   Promise.resolve()
 )
 
@@ -32,18 +32,18 @@ export default {
   save: R.curryN(2, R.ifElse(
     Common.canUseDOM,
     save,
-    empty
+    noop
   )),
 
   load: R.ifElse(
     Common.canUseDOM,
     load,
-    empty
+    noop
   ),
 
   remove: R.ifElse(
     Common.canUseDOM,
     remove,
-    empty
+    noop
   )
 }
