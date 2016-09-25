@@ -1,11 +1,6 @@
 import R from 'ramda'
 import { AsyncStorage } from 'react-native'
 
-const save = (name, value) => (
-  AsyncStorage.setItem(
-    name, JSON.stringify(value))
-)
-
 const jsonParse = (json) => {
   try {
     return JSON.parse(json)
@@ -14,14 +9,23 @@ const jsonParse = (json) => {
   }
 }
 
-const load = R.pipe(
-  AsyncStorage.getItem,
-  R.invoker(1, 'then')(jsonParse)
+const load = (name) => (
+  AsyncStorage.getItem(name)
+    .then(jsonParse)
+)
+
+const save = (name, value) => (
+  AsyncStorage.setItem(
+    name, JSON.stringify(value))
+)
+
+const remove = (name) => (
+  AsyncStorage.removeItem(name)
 )
 
 export default {
 
   load,
   save: R.curryN(2, save),
-  remove: AsyncStorage.removeItem
+  remove
 }
