@@ -1,5 +1,6 @@
+/* eslint-env mocha */
+
 import chai from 'chai'
-import sinon from 'sinon'
 import React from 'react'
 import { shallow } from 'enzyme'
 import TimeTravelAction from '../actions/timetravel-action'

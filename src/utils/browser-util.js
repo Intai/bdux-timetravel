@@ -1,7 +1,7 @@
 import R from 'ramda'
 import Common from './common-util'
 
-const reload = () => {
+export const reload = () => {
   document.location.reload()
 }
 
