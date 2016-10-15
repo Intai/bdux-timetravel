@@ -48,7 +48,10 @@ const appendRecordToHistory = (history, record) => (
 const resetAnchor = R.ifElse(
   R.isNil,
   R.always([]),
-  R.flip(R.merge)({ anchor: false })
+  R.pipe(
+    R.flip(R.merge)({ anchor: false }),
+    R.of
+  )
 )
 
 const clearHistoryAfterAnchor = R.pipe(
@@ -78,7 +81,7 @@ const mergeRecord = R.curry((record, timeslice) => (
   // if for the same action.
   (isActionEqual(record, timeslice))
     // merge the record to an existing time slice.
-    ? R.mergeWith(R.concat, timeslice, { records: record })
+    ? R.mergeWith(R.concat, timeslice, { records: [record] })
     : timeslice
 ))
 
