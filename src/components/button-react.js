@@ -9,11 +9,10 @@ const mergeButtonStyle = R.pipe(
   R.merge(styles.button)
 )
 
-export const Button = ({ style, children, ...props }) => (
+export const Button = ({ style, ...props }) => (
   <button { ...props }
-    style={ mergeButtonStyle(style) }>
-    { children }
-  </button>
+    style={ mergeButtonStyle(style) }
+  />
 )
 
 export default createComponent(Button)
