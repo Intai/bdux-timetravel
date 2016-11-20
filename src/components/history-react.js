@@ -70,23 +70,16 @@ const renderHistory = ({ timetravel, refList, refAnchor }) => (
   </ul>
 )
 
-const render = R.ifElse(
-  // if there is a history array.
-  hasHistory,
-  // render the history.
-  renderHistory,
-  // otherwise, render nothing.
-  R.F
+export const History = (props) => (
+  hasHistory(props)
+    ? renderHistory(props)
+    : false
 )
 
-export const History = scrollIntoView(
-  React.createClass({
-    render() {
-      return render(this.props)
-    }
-  })
-)
+const HistoryDecorated = R.compose(
+  scrollIntoView
+)(History)
 
-export default createComponent(History, {
+export default createComponent(HistoryDecorated, {
   timetravel: TimeTravelStore
 })
