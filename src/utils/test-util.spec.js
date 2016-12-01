@@ -5,7 +5,8 @@ import sinon from 'sinon'
 import module from 'module'
 import {
   requireIOS,
-  requireAndroid } from './test-util'
+  requireAndroid,
+  requirePlatform } from './test-util'
 
 describe('Test Utilities', () => {
 
@@ -23,6 +24,18 @@ describe('Test Utilities', () => {
 
   it('should hijack module findPath to android', () => {
     requireAndroid(sandbox, ['./test-util'])
+    chai.expect(module._findPath('./test-util', [__dirname]))
+      .to.match(/test-util\.android\.js$/)
+  })
+
+  it('should hijack module findPath to ios and android', () => {
+    requirePlatform(sandbox, {
+      ios: ['./common-util'],
+      android: ['./test-util']
+    })
+
+    chai.expect(module._findPath('./common-util', [__dirname]))
+      .to.match(/common-util\.ios\.js$/)
     chai.expect(module._findPath('./test-util', [__dirname]))
       .to.match(/test-util\.android\.js$/)
   })

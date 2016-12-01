@@ -4,7 +4,7 @@ import { TouchableOpacity, ListView, View, Text } from 'react-native'
 import TimeTravelAction from '../actions/timetravel-action'
 import TimeTravelStore from '../stores/timetravel-store'
 import styles from './history-style'
-import { scrollIntoView } from './decorators/scroll-into-view-react'
+import { scrollIntoView } from './decorators/scroll-into-view-react.native'
 import { createComponent } from 'bdux'
 
 const hasHistory = R.pipe(
@@ -12,9 +12,9 @@ const hasHistory = R.pipe(
   R.is(Array)
 )
 
-const onRevert = R.curryN(2, (id) => {
+const onRevert = (id) => () => {
   TimeTravelAction.revert(id)
-})
+}
 
 const formatValue = (value) => (
   // todo: expandable tree view.
@@ -24,7 +24,7 @@ const formatValue = (value) => (
     .replace(/}$/, ' }')
 )
 
-const isEqualRecord = (record, other) => (
+export const isEqualRecord = (record, other) => (
   record.id === other.id
     && !record.anchor === !other.anchor
 )
@@ -92,17 +92,16 @@ const renderHistory = ({ timetravel, refWrap, refList, refAnchor, ...props }) =>
   </View>
 )
 
-export const History = scrollIntoView(
-  R.ifElse(
-    // if there is a history array.
-    hasHistory,
-    // render the history.
-    renderHistory,
-    // otherwise, render nothing.
-    R.F
-  )
+export const History = (props) => (
+  hasHistory(props)
+    ? renderHistory(props)
+    : false
 )
 
-export default createComponent(History, {
+const HistoryDecorated = R.compose(
+  scrollIntoView
+)(History)
+
+export default createComponent(HistoryDecorated, {
   timetravel: TimeTravelStore
 })

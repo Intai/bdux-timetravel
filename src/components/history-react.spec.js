@@ -26,7 +26,7 @@ describe('History Component', () => {
       timetravel: {
         history: []
       }
-    };
+    }
 
     const wrapper = shallow(History(props))
     chai.expect(wrapper.name()).to.equal('ul')
@@ -39,7 +39,7 @@ describe('History Component', () => {
         showHistory: true,
         history: []
       }
-    };
+    }
 
     const wrapper = shallow(History(props))
     chai.expect(wrapper.prop('style')).to.not.have.property('flex')
@@ -151,9 +151,9 @@ describe('History Component', () => {
         timetravel: {
           history: []
         }
-      };
+      }
 
-      mount(<div>{ History(props) }</div>)
+      mount(<History { ...props } />)
       chai.expect(props.refList.calledOnce).to.be.true
       chai.expect(props.refList.lastCall.args[0]).to.have.property('tagName', 'UL')
     })
@@ -173,7 +173,7 @@ describe('History Component', () => {
         }
       }
 
-      mount(<div>{ History(props) }</div>)
+      mount(<History { ...props } />)
       chai.expect(props.refAnchor.calledOnce).to.be.true
       chai.expect(props.refAnchor.lastCall.args[0]).to.have.property('tagName', 'LI')
     })

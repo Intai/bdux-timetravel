@@ -27,20 +27,36 @@ const addPlatform = R.curryN(2, R.useWith(
   ]
 ))
 
-const requirePlatform = (platform) => (sandbox, requests) => {
+const addPlatformByKey = (requests, key) => (
+  R.map(addPlatform(key), requests)
+);
+
+const addPlatforms = R.pipe(
+  R.mapObjIndexed(addPlatformByKey),
+  R.values,
+  R.flatten
+)
+
+export const requirePlatform = (sandbox, requests) => {
   const findPath = module._findPath
   sandbox.stub(module, '_findPath',
     R.apply(R.pipe)(
       R.prepend(findPath,
-        R.map(addPlatform(platform), requests))
+        addPlatforms(requests))
     )
   )
 }
 
-export const requireIOS = requirePlatform(
-  'ios'
+export const requireIOS = R.useWith(
+  requirePlatform, [
+    R.identity,
+    R.objOf('ios')
+  ]
 )
 
-export const requireAndroid = requirePlatform(
-  'android'
+export const requireAndroid = R.useWith(
+  requirePlatform, [
+    R.identity,
+    R.objOf('android')
+  ]
 )
