@@ -36,7 +36,18 @@ export const calcScrollTop = R.cond([
   [R.T, R.always(-1)]
 ])
 
-const bindMouseEvents = R.once((node, setHover) => {
+const memoizeNode = (func) => {
+  const nodes = []
+  return (...args) => {
+    const node = args[0];
+    if (nodes.indexOf(node) < 0) {
+      nodes.push(node)
+      R.apply(func, args)
+    }
+  }
+}
+
+const bindMouseEvents = memoizeNode((node, setHover) => {
   node.addEventListener('mouseenter', () => setHover(true))
   node.addEventListener('mouseleave', () => setHover(false))
 })
@@ -44,7 +55,7 @@ const bindMouseEvents = R.once((node, setHover) => {
 const isNotHover = (() => {
   let isHover = false
   return ({ list }) => {
-    bindMouseEvents(list, (value) => isHover = value)
+    bindMouseEvents(list, value => isHover = value)
     return !isHover
   }
 })()
@@ -100,26 +111,31 @@ const scrollToAnchor = R.when(
   scrollToDiffAnchor
 )
 
-export const scrollIntoView = (Component) => (
-  React.createClass({
-    displayName: getDisplayName(Component),
-    getDefaultProps: () => ({}),
-    getInitialState: () => ({}),
+export const scrollIntoView = (Component = R.F) => (
+  class extends React.Component {
+    static displayName = getDisplayName(Component)
+    static defaultProps = {}
+    state = {}
+
+    /* istanbul ignore next */
+    constructor() {
+      super()
+    }
 
     componentDidUpdate() {
       scrollToAnchor({
         list: this.list,
         anchor: this.anchor
       })
-    },
+    }
 
     render() {
       return React.createElement(
-        Component, Object.assign({}, this.props, {
+        Component, R.merge(this.props, {
           refList: node => this.list = node,
           refAnchor: node => this.anchor = node
         })
       )
     }
-  })
+  }
 )
