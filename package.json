@@ -61,7 +61,7 @@
     "react-native": "^0.35.0",
     "react-native-mock": "^0.2.6",
     "sinon": "^1.17.6",
-    "sinon-stub-promise": "^3.0.1"
+    "sinon-stub-promise": "^4.0.0"
   },
   "peerDependencies": {
     "baconjs": "^0.7.88",
