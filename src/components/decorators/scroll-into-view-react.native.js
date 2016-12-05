@@ -36,10 +36,14 @@ const getListHeight = ({ wrap, list, anchor }) => (
   })
 )
 
+const findNodeHandle = (
+  ReactNative.findNodeHandle || R.F
+)
+
 const getAnchorDimension = ({ list, anchor, listHeight }) => (
   new Promise((resolve) => {
     anchor.measureLayout(
-      ReactNative.findNodeHandle(list),
+      findNodeHandle(list),
       (x, y, width, height) => {
         resolve({
           list,
@@ -91,11 +95,16 @@ const scrollToAnchor = R.when(
   scrollToDiffAnchor
 )
 
-export const scrollIntoView = (Component) => (
-  React.createClass({
-    displayName: getDisplayName(Component),
-    getDefaultProps: () => ({}),
-    getInitialState: () => ({}),
+export const scrollIntoView = (Component = R.F) => (
+  class extends React.Component {
+    static displayName = getDisplayName(Component)
+    static defaultProps = {}
+    state = {}
+
+    /* istanbul ignore next */
+    constructor() {
+      super()
+    }
 
     onLayout() {
       scrollToAnchor({
@@ -103,17 +112,17 @@ export const scrollIntoView = (Component) => (
         list: this.list,
         anchor: this.anchor
       })
-    },
+    }
 
     render() {
       return React.createElement(
-        Component, Object.assign({}, this.props, {
+        Component, R.merge(this.props, {
           refWrap: node => this.wrap = node,
           refList: node => this.list = node,
           refAnchor: node => this.anchor = node,
-          onLayout: this.onLayout
+          onLayout: R.bind(this.onLayout, this)
         })
       )
     }
-  })
+  }
 )
