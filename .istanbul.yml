@@ -21,6 +21,7 @@ reporting:
     print: summary
     reports:
         - html
+        - lcov
     dir: ./coverage
     summarizer: pkg
     report-config: {}
