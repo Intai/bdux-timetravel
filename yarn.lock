@@ -942,10 +942,10 @@ bcrypt-pbkdf@^1.0.0:
     tweetnacl "^0.14.3"
 
 bdux@^0.1.19:
-  version "0.1.25"
-  resolved "https://registry.yarnpkg.com/bdux/-/bdux-0.1.25.tgz#4f23d4f0ea90fb026a7cb315953c2256f7824400"
+  version "0.1.26"
+  resolved "https://registry.yarnpkg.com/bdux/-/bdux-0.1.26.tgz#da23bedbcf40fd1c7a6886b142bd8e2b8a4c6e50"
   dependencies:
-    ramda "^0.21.0"
+    ramda "^0.23.0"
 
 beeper@^1.0.0:
   version "1.1.1"
@@ -4485,10 +4485,6 @@ raf@^3.2.0:
   dependencies:
     performance-now "~0.2.0"
 
-ramda@^0.21.0:
-  version "0.21.0"
-  resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.21.0.tgz#a001abedb3ff61077d4ff1d577d44de77e8d0a35"
-
 ramda@^0.23.0:
   version "0.23.0"
   resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.23.0.tgz#ccd13fff73497a93974e3e86327bfd87bd6e8e2b"
@@ -4537,9 +4533,16 @@ react-addons-pure-render-mixin@^15.4.0:
   version "15.4.1"
   resolved "https://registry.yarnpkg.com/react-addons-pure-render-mixin/-/react-addons-pure-render-mixin-15.4.1.tgz#8a1f48f9fd3f24ed12af63c4d2dc0c7529fa7e02"
 
-react-addons-test-utils@^15.1.0, react-addons-test-utils@^15.4.0:
+react-addons-test-utils@^15.4.0:
   version "15.4.1"
   resolved "https://registry.yarnpkg.com/react-addons-test-utils/-/react-addons-test-utils-15.4.1.tgz#1e4caab151bf27cce26df5f9cb714f4fd8359ae1"
+
+react-addons-test-utils@^15.4.2:
+  version "15.4.2"
+  resolved "https://registry.yarnpkg.com/react-addons-test-utils/-/react-addons-test-utils-15.4.2.tgz#93bcaa718fcae7360d42e8fb1c09756cc36302a2"
+  dependencies:
+    fbjs "^0.8.4"
+    object-assign "^4.1.0"
 
 react-addons-update@^15.4.0:
   version "15.4.1"
