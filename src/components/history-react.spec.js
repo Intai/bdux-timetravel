@@ -168,6 +168,7 @@ describe('History Component', () => {
             action: {}
           }, {
             id: 2,
+            anchor: false,
             action: {}
           }]
         }

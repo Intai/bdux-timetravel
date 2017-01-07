@@ -38,6 +38,12 @@ const renderParams = R.pipe(
   R.values
 )
 
+const cleanRef = R.ifElse(
+  R.is(Function),
+  R.identity,
+  R.always(undefined)
+)
+
 const getListItemStyle = (record) => (
   Object.assign({}, styles.item,
     record.anchor && styles.anchor)
@@ -45,7 +51,7 @@ const getListItemStyle = (record) => (
 
 const renderRecord = R.curry((record, refAnchor) => (
   <li key={ record.id }
-    ref={ record.anchor && refAnchor }
+    ref={ cleanRef(record.anchor && refAnchor) }
     style={ getListItemStyle(record) }>
 
     <div onClick={ onRevert(record.id) }
@@ -65,7 +71,7 @@ const getListStyle = (timetravel) => (
 )
 
 const renderHistory = ({ timetravel, refList, refAnchor }) => (
-  <ul ref={ refList } style={ getListStyle(timetravel) }>
+  <ul ref={ cleanRef(refList) } style={ getListStyle(timetravel) }>
     { R.map(renderRecord(R.__, refAnchor), timetravel.history) }
   </ul>
 )
