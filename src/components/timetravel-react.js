@@ -18,9 +18,10 @@ const shouldShowHistory = (timetravel) => (
 )
 
 const getContainerStyle = (timetravel) => (
-  R.merge(styles.container,
-    !shouldShowHistory(timetravel) && styles.hideHistory
-  )
+  R.mergeAll([
+    styles.container,
+    !shouldShowHistory(timetravel) && styles.hideHistory || {}
+  ])
 )
 
 const renderRestart = () => (

@@ -45,8 +45,10 @@ const cleanRef = R.ifElse(
 )
 
 const getListItemStyle = (record) => (
-  Object.assign({}, styles.item,
-    record.anchor && styles.anchor)
+  R.mergeAll([
+    styles.item,
+    record.anchor && styles.anchor
+  ])
 )
 
 const renderRecord = R.curry((record, refAnchor) => (
@@ -66,8 +68,10 @@ const renderRecord = R.curry((record, refAnchor) => (
 ))
 
 const getListStyle = (timetravel) => (
-  Object.assign({}, styles.list,
-    !timetravel.showHistory && styles.hide)
+  R.mergeAll([
+    styles.list,
+    !timetravel.showHistory && styles.hide
+  ])
 )
 
 const renderHistory = ({ timetravel, refList, refAnchor }) => (

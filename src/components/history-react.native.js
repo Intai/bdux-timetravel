@@ -42,8 +42,9 @@ const renderParams = R.pipe(
 )
 
 const getListItemStyle = (record) => (
-  Object.assign({},
-    record.anchor && styles.anchor || {})
+  R.mergeAll([
+    record.anchor && styles.anchor || {}
+  ])
 )
 
 const renderRecord = R.curry((record, refAnchor) => (
