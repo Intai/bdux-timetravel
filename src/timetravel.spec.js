@@ -62,7 +62,7 @@ describe('TimeTravel Middleware', () => {
     beforeEach(() => {
       sandbox.stub(Common, 'isOnClient').returns(true)
       promiseLoad = sandbox.stub(Storage, 'load').returnsPromise()
-      TimeTravel.historyInStorageStream.reload()
+      TimeTravel.historyInStorageProperty.reload()
     })
 
     it('should start recording', () => {
@@ -104,6 +104,20 @@ describe('TimeTravel Middleware', () => {
       promiseLoad.resolves([])
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.eql({})
+    })
+
+    it('should keep the latest loaded history from storage', () => {
+      const pluggable1 = TimeTravel.getPreReduce()
+      const callback = sinon.stub()
+      pluggable1.output.onValue(callback)
+      pluggable1.input.push({})
+      promiseLoad.resolves([])
+
+      const pluggable2 = TimeTravel.getPreReduce()
+      pluggable2.output.onValue(callback)
+      pluggable2.input.push({ name: 'test' })
+      chai.expect(callback.calledTwice).to.be.true
+      chai.expect(callback.lastCall.args[0]).to.eql({ name: 'test' })
     })
 
     it('should declutch by default when resuming from storage', () => {

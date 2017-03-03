@@ -100,25 +100,27 @@ const getDeclutchStream = (preStream) => (
   )
 )
 
-const createHistoryStream = () => (
+const createHistoryProperty = () => (
   Bacon.fromPromise(
-    Storage.load('bduxHistory'))
+    Storage.load('bduxHistory')
+  )
+  .toProperty()
 )
 
-export const historyInStorageStream = Common.createInstance(
-  createHistoryStream
+export const historyInStorageProperty = Common.createInstance(
+  createHistoryProperty
 )
 
 const createHistoryValve = () => (
-  historyInStorageStream.get()
+  historyInStorageProperty.get()
     .map(R.F)
-    .toProperty(true)
+    .startWith(true)
 )
 
 const getDeclutchProperty = (preStream) => (
   Bacon.mergeAll(
     // declutch by default when resuming from session storage.
-    historyInStorageStream.get()
+    historyInStorageProperty.get()
       .first()
       .map(isNotEmptyArray),
 
