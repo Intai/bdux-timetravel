@@ -3,6 +3,7 @@ import Bacon from 'baconjs'
 import Common from './utils/common-util'
 import Storage from './utils/storage-util'
 import ActionTypes from './actions/action-types'
+import StoreNames from './stores/store-names';
 import TimeTravelAction from './actions/timetravel-action.js'
 
 const isOnClient = () => (
@@ -52,8 +53,12 @@ const getTimeRecord = R.converge(
   ]
 )
 
+const isNotTimeStore = R.complement(
+  R.propEq('name', StoreNames.TIMETRAVEL)
+)
+
 const mapTimeRevert = R.when(
-  R.allPass([isRevert, hasTimeslice]),
+  R.allPass([isRevert, isNotTimeStore, hasTimeslice]),
   getTimeRecord
 )
 
@@ -102,8 +107,7 @@ const getDeclutchStream = (preStream) => (
 
 const createHistoryProperty = () => (
   Bacon.fromPromise(
-    Storage.load('bduxHistory')
-  )
+    Storage.load('bduxHistory'))
   .toProperty()
 )
 
