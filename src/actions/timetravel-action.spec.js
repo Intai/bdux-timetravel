@@ -384,9 +384,19 @@ describe('TimeTravel Action', () => {
     it('should save history in storage', () => {
       start().onValue()
       record({ action: { id: 1 } })
-      chai.expect(Storage.save().calledTwice).to.be.true
+      clock.tick(500)
+      chai.expect(Storage.save().calledOnce).to.be.true
       chai.expect(Storage.save().lastCall.args[0]).to.have.length(1)
         .and.has.deep.property('[0].action.id', 1)
+    })
+
+    it('should debounce history saving into storage', () => {
+      start().onValue()
+      record({ action: { id: 1 } })
+      record({ action: { id: 2 } })
+      chai.expect(Storage.save().called).to.be.false
+      clock.tick(500)
+      chai.expect(Storage.save().calledOnce).to.be.true
     })
 
     it('should not resume without history from storage', () => {

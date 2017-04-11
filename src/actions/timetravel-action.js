@@ -136,8 +136,6 @@ const createHistoryProperty = () => (
     // clear the currently accumulated history.
     [clearHistoryStream], R.always([])
   )
-  // save in session storage.
-  .doAction(Storage.save('bduxHistory'))
 )
 
 export const historyProperty = Common.createInstance(
@@ -239,6 +237,15 @@ const createResumeToAnchor = () => (
   .sampledBy(getResumeStream(), R.identity)
 )
 
+const createStorageSave = () => (
+  historyProperty.get()
+    .changes()
+    .debounce(500)
+    // save in session storage.
+    .doAction(Storage.save('bduxHistory'))
+    .filter(R.F)
+)
+
 const createRestart = () => (
   Bacon.fromArray([{
     type: ActionTypes.TIMETRAVEL_REVERT,
@@ -277,6 +284,7 @@ export const start = R.ifElse(
     Bacon.mergeAll, [
       createStartStream,
       createResumeToAnchor,
+      createStorageSave,
       declutchToResume
     ]
   ),

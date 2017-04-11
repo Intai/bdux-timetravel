@@ -39,7 +39,7 @@ const addPlatforms = R.pipe(
 
 export const requirePlatform = (sandbox, requests) => {
   const findPath = module._findPath
-  sandbox.stub(module, '_findPath',
+  sandbox.stub(module, '_findPath').callsFake(
     R.apply(R.pipe)(
       R.prepend(findPath,
         addPlatforms(requests))

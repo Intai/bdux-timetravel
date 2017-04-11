@@ -4,6 +4,7 @@ import { TouchableOpacity, ListView, View, Text } from 'react-native'
 import TimeTravelAction from '../actions/timetravel-action'
 import TimeTravelStore from '../stores/timetravel-store'
 import styles from './history-style'
+import { pureRender } from './decorators/pure-render'
 import { scrollIntoView } from './decorators/scroll-into-view-react.native'
 import { createComponent } from 'bdux'
 
@@ -30,8 +31,8 @@ export const isEqualRecord = (record, other) => (
 )
 
 const renderParam = (value, key) => (
-  <Text key={ key } style={ styles.actionValue }>
-    { key }: { formatValue(value) }
+  <Text key={key} style={styles.actionValue}>
+    {key}: {formatValue(value)}
   </Text>
 )
 
@@ -47,20 +48,20 @@ const getListItemStyle = (record) => (
   ])
 )
 
-const renderRecord = R.curry((record, refAnchor) => (
-  <View ref={ record.anchor && refAnchor }
-    style={ getListItemStyle(record) }>
-
-    <TouchableOpacity onPress={ onRevert(record.id) }>
-      <View style={ styles.actionTypeWrap }>
-        <Text style={ styles.actionType }>
-          { record.action.type }
+const renderRecord = R.curry((refAnchor, record) => (
+  <View ref={record.anchor && refAnchor}
+    style={getListItemStyle(record)}
+  >
+    <TouchableOpacity onPress={onRevert(record.id)}>
+      <View style={styles.actionTypeWrap}>
+        <Text style={styles.actionType}>
+          {record.action.type}
         </Text>
       </View>
     </TouchableOpacity>
 
-    <View style={ styles.actionParams }>
-      { renderParams(record.action) }
+    <View style={styles.actionParams}>
+      {renderParams(record.action)}
     </View>
   </View>
 ))
@@ -80,26 +81,29 @@ const createHistoryDataSource = (() => {
 })()
 
 const renderHistory = ({ timetravel, refWrap, refList, refAnchor, ...props }) => (
-  <View ref={ refWrap }
-    style={ styles.wrap }
-    collapsable={ false }>
-
-    <ListView { ...props }
-      ref={ refList }
-      style={ styles.list }
-      dataSource={ createHistoryDataSource(timetravel) }
-      renderRow={ renderRecord(R.__, refAnchor) }
-      enableEmptySections={ true } />
+  <View
+    collapsable={false}
+    ref={refWrap}
+    style={styles.wrap}
+  >
+    <ListView
+      {...props}
+      dataSource={createHistoryDataSource(timetravel)}
+      enableEmptySections
+      ref={refList}
+      renderRow={renderRecord(refAnchor)}
+      style={styles.list}
+    />
   </View>
 )
 
 export const History = (props) => (
   hasHistory(props)
-    ? renderHistory(props)
-    : false
+    && renderHistory(props)
 )
 
 const HistoryDecorated = R.compose(
+  pureRender,
   scrollIntoView
 )(History)
 

@@ -175,6 +175,7 @@ describe('ScrollIntoView Decorator', () => {
 
       const wrapper = renderDomScrollIntoView(list, () => anchor)
       wrapper.setProps({})
+      scrollTo.reset()
 
       list.dispatchEvent(new window.CustomEvent('mouseenter'));
       anchor = { offsetTop: 0 }
@@ -190,6 +191,7 @@ describe('ScrollIntoView Decorator', () => {
 
       const wrapper = renderDomScrollIntoView(list, () => anchor)
       wrapper.setProps({})
+      scrollTo.reset()
 
       list.dispatchEvent(new window.CustomEvent('mouseenter'));
       list.dispatchEvent(new window.CustomEvent('mouseleave'));
