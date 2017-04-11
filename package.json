@@ -1,6 +1,6 @@
 {
   "name": "bdux-timetravel",
-  "version": "0.1.30",
+  "version": "0.1.31",
   "description": "A Bdux Middleware",
   "main": "lib/main.js",
   "scripts": {
