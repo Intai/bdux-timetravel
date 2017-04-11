@@ -8,8 +8,10 @@ import Browser from '../utils/browser-util'
 import { bindToDispatch } from 'bdux'
 
 const recordStream = new Bacon.Bus()
+const resumeStream = new Bacon.Bus()
 const revertStream = new Bacon.Bus()
 const clearHistoryStream = new Bacon.Bus()
+const filterResumeStream = new Bacon.Bus()
 
 const isOnClient = () => (
   Common.isOnClient()
@@ -195,29 +197,46 @@ const createDeclutch = () => ({
   skipLog: true
 })
 
-const mergeDeclutchStream = (action) => (
-  Bacon.fromArray([
-    action,
-    createDeclutch()
-  ])
+const enableResume = () => {
+  filterResumeStream.push(true)
+}
+
+const disableResume = () => {
+  filterResumeStream.push(false)
+}
+
+const declutchToResume = () => (
+  historyInStorageStream.get()
+    .first()
+    .filter(isNotEmptyArray)
+    .map(createDeclutch)
+    .doAction(enableResume)
 )
 
-const declutchAfterResume = R.when(
-  R.propIs(Object, 'timeslice'),
-  mergeDeclutchStream
+const getResumeValve = () => (
+  historyInStorageStream.get()
+    .map(R.F)
+    .toProperty(true)
+)
+
+const getResumeStream = () => (
+  resumeStream
+    .holdWhen(getResumeValve())
+    .filter(filterResumeStream.toProperty(false))
+    .debounce(1)
 )
 
 const createResumeToAnchor = () => (
   Bacon.combineTemplate({
     type: ActionTypes.TIMETRAVEL_REVERT,
-    timeslice: historyInStorageStream.get()
+    timeslice: historyProperty.get()
       // find the anchor time slice to revert to.
       .map(R.defaultTo([]))
       .map(findAnchor),
     skipLog: true
   })
-  .flatMap(declutchAfterResume)
-  .toEventStream()
+  // debounce to reduce unnecessary resumes.
+  .sampledBy(getResumeStream(), R.identity)
 )
 
 const createRestart = () => (
@@ -232,6 +251,10 @@ const createRestart = () => (
 
 const pushRecord = (record) => {
   recordStream.push(record)
+}
+
+const pushResume = () => {
+  resumeStream.push(true)
 }
 
 const pushRevert = (id) => {
@@ -250,14 +273,20 @@ const createStartStream = () => (
 
 export const start = R.ifElse(
   isOnClient,
-  createStartStream,
+  R.converge(
+    Bacon.mergeAll, [
+      createStartStream,
+      createResumeToAnchor,
+      declutchToResume
+    ]
+  ),
   R.F
 )
 
 // reapply the anchor action and store states.
 export const resume = R.ifElse(
   isOnClient,
-  createResumeToAnchor,
+  pushResume,
   R.F
 )
 
@@ -285,6 +314,8 @@ export const record = R.ifElse(
 )
 
 export const revert = R.pipe(
+  // enable resuming from history.
+  R.tap(enableResume),
   // anchor at a time slice in history.
   R.tap(pushRevert),
   // reapply the action and store states.
@@ -308,5 +339,6 @@ export default bindToDispatch({
   revert,
   clutch,
   declutch,
-  toggleHistory
+  toggleHistory,
+  disableResume
 })

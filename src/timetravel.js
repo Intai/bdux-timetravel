@@ -63,7 +63,6 @@ const mapTimeRevert = R.when(
 )
 
 const isNotTimeTravel = R.pipe(
-  R.nthArg(0),
   R.path(['action', 'type']),
   R.flip(R.contains)([
     ActionTypes.TIMETRAVEL_TOGGLE_HISTORY,
@@ -85,25 +84,14 @@ const mapToIdle = (args) => (
   })
 )
 
-const mapDeclutchToIdle = R.ifElse(
+const mapDeclutchToIdle = R.flip(R.ifElse(
   // if was declutched and not time travelling.
   R.allPass([R.nthArg(1), isNotTimeTravel]),
   // change the action to do nothing.
   mapToIdle,
   // otherwise continue reducing.
   R.nthArg(0)
-)
-
-const getDeclutchStream = (preStream) => (
-  Bacon.mergeAll(
-    preStream
-      .filter(isClutch)
-      .map(R.F),
-    preStream
-      .filter(isDeclutch)
-      .map(R.T)
-  )
-)
+))
 
 const createHistoryProperty = () => (
   Bacon.fromPromise(
@@ -121,27 +109,83 @@ const createHistoryValve = () => (
     .startWith(true)
 )
 
-const getDeclutchProperty = (preStream) => (
-  Bacon.mergeAll(
+const initDeclutchProperty = (declutchStream) => {
+  declutchStream.plug(
     // declutch by default when resuming from session storage.
     historyInStorageProperty.get()
+      .toEventStream()
       .first()
-      .map(isNotEmptyArray),
-
-    // whether currently clutched to dispatcher.
-    getDeclutchStream(preStream)
+      .map(isNotEmptyArray)
   )
-  .toProperty()
+}
+
+const reloadDeclutchProperty = (declutchStream) => () => {
+  declutchStream.push(false)
+  initDeclutchProperty(declutchStream)
+}
+
+const plugDeclutchStream = R.curry((declutchStream, preStream) => {
+  declutchStream.plug(
+    // whether currently clutched to dispatcher.
+    Bacon.mergeAll(
+      preStream
+        .filter(isClutch)
+        .map(R.F),
+      preStream
+        .filter(isDeclutch)
+        .map(R.T)
+    )
+  )
+})
+
+export const declutchProperty = (() => {
+  const declutchStream = new Bacon.Bus()
+  const declutchProperty = declutchStream.toProperty(false)
+  initDeclutchProperty(declutchStream)
+
+  return {
+    reload: reloadDeclutchProperty(declutchStream),
+    get: R.pipe(
+      plugDeclutchStream(declutchStream),
+      R.always(declutchProperty)
+    )
+  }
+})()
+
+const shouldDisableResume = R.allPass([
+  R.nthArg(1),
+  isNotTimeTravel
+])
+
+const disableResume = R.pipe(
+  () => TimeTravelAction.disableResume(),
+  R.F
 )
+
+const disableResumeAfterHadRevert = R.cond([
+  [isRevert, R.T],
+  [shouldDisableResume, disableResume],
+  [R.T, R.nthArg(1)]
+])
+
+const disableResumeAfterRevert = (() => {
+  let hadRevert = false
+  return (args) => {
+    hadRevert = disableResumeAfterHadRevert(args, hadRevert)
+  }
+})();
 
 const getPreOutputOnClient = (preStream) => (
   Bacon.when([
+    declutchProperty.get(preStream),
     // wait for storage.
-    preStream.holdWhen(createHistoryValve()),
-    // filter out actions while declutched.
-    getDeclutchProperty(preStream)], mapDeclutchToIdle)
+    preStream.holdWhen(createHistoryValve())
+  // filter out actions while declutched.
+  ], mapDeclutchToIdle)
   // record the action and store states.
   .doAction(TimeTravelAction.record)
+  // disable resuming after done reverting.
+  .doAction(disableResumeAfterRevert)
   // handle revert action.
   .map(mapTimeRevert)
 )

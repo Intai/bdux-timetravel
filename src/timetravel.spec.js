@@ -3,6 +3,7 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonStubPromise from 'sinon-stub-promise'
+import R from 'ramda'
 import Common from './utils/common-util'
 import Storage from './utils/storage-util'
 import ActionTypes from './actions/action-types'
@@ -10,6 +11,11 @@ import TimeTravelAction from './actions/timetravel-action'
 import * as TimeTravel from './timetravel'
 
 sinonStubPromise(sinon)
+
+const createActionType = R.pipe(
+  R.objOf('type'),
+  R.objOf('action')
+)
 
 describe('TimeTravel Middleware', () => {
 
@@ -63,12 +69,52 @@ describe('TimeTravel Middleware', () => {
       sandbox.stub(Common, 'isOnClient').returns(true)
       promiseLoad = sandbox.stub(Storage, 'load').returnsPromise()
       TimeTravel.historyInStorageProperty.reload()
+      TimeTravel.declutchProperty.reload()
     })
 
     it('should start recording', () => {
       sandbox.stub(TimeTravelAction, 'start')
       TimeTravel.getPreReduce()
       chai.expect(TimeTravelAction.start.calledOnce).to.be.true
+    })
+
+    it('should not disable resume', () => {
+      sandbox.stub(TimeTravelAction, 'disableResume')
+      const pluggable = TimeTravel.getPreReduce()
+
+      pluggable.output.onValue()
+      pluggable.input.push({})
+      promiseLoad.resolves([])
+      chai.expect(TimeTravelAction.disableResume.called).to.be.false
+    })
+
+    it('should not disable resume when updating history', () => {
+      sandbox.stub(TimeTravelAction, 'disableResume')
+      const pluggable = TimeTravel.getPreReduce()
+      const revert = createActionType(ActionTypes.TIMETRAVEL_REVERT)
+      const history = createActionType(ActionTypes.TIMETRAVEL_HISTORY)
+
+      pluggable.output.onValue()
+      pluggable.input.push(revert)
+      pluggable.input.push(history)
+      promiseLoad.resolves([])
+      chai.expect(TimeTravelAction.disableResume.called).to.be.false
+    })
+
+    it('should disable resume after reverting', () => {
+      sandbox.stub(TimeTravelAction, 'disableResume')
+      const pluggable = TimeTravel.getPreReduce()
+      const revert = {
+        action: {
+          type: ActionTypes.TIMETRAVEL_REVERT
+        }
+      }
+
+      pluggable.output.onValue()
+      pluggable.input.push(revert)
+      pluggable.input.push({})
+      promiseLoad.resolves([])
+      chai.expect(TimeTravelAction.disableResume.calledOnce).to.be.true
     })
 
     it('should record action and store states', () => {
@@ -130,6 +176,26 @@ describe('TimeTravel Middleware', () => {
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
         .and.has.property('type', ActionTypes.TIMETRAVEL_IDLE)
+    })
+
+    it('should keep whether currently declutched', () => {
+      const pluggable1 = TimeTravel.getPreReduce()
+      const callback1 = sinon.stub()
+      pluggable1.output.onValue(callback1)
+      pluggable1.input.push({})
+      promiseLoad.resolves([{}])
+      pluggable1.input.push({
+        action: {
+          type: ActionTypes.TIMETRAVEL_CLUTCH
+        }
+      })
+
+      const pluggable2 = TimeTravel.getPreReduce()
+      const callback2 = sinon.stub()
+      pluggable2.output.onValue(callback2)
+      pluggable2.input.push({})
+      chai.expect(callback2.calledOnce).to.be.true
+      chai.expect(callback2.lastCall.args[0]).to.eql({})
     })
 
     it('should skip logging action which has been blocked', () => {
