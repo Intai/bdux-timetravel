@@ -33,6 +33,7 @@ describe('Resume Decorator', () => {
   })
 
   it('should keep the component name from displayName', () => {
+    // eslint-disable-next-line react/no-multi-comp
     const Test = resume(resume(class Test extends React.Component {}))
     chai.expect(Test.displayName).to.equal('Test')
   })
