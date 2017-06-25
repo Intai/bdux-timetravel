@@ -77,7 +77,7 @@ describe('TimeTravel Store', () => {
     })
 
     chai.expect(callback.calledTwice).to.be.true
-    chai.expect(callback.lastCall.args[0]).to.have.deep.property('history[1]')
+    chai.expect(callback.lastCall.args[0]).to.have.nested.property('history[1]')
       .and.include({ anchor: true })
   })
 

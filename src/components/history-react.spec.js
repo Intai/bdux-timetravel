@@ -3,7 +3,7 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import React from 'react'
-import { jsdom } from 'jsdom'
+import { JSDOM } from 'jsdom'
 import { shallow, mount } from 'enzyme'
 import { History } from './history-react'
 import styles from './history-style'
@@ -101,9 +101,10 @@ describe('History Component', () => {
   describe('with jsdom', () => {
 
     beforeEach(() => {
-      const doc = jsdom('<html></html>')
-      global.document = doc
-      global.window = doc.defaultView
+      const dom = new JSDOM('<html></html>')
+      global.window = dom.window
+      global.document = dom.window.document
+      global.Element = dom.window.Element
     })
 
     it('should reference list for scroll-into-view', () => {

@@ -4,7 +4,7 @@ import chai from 'chai'
 import sinon from 'sinon'
 import R from 'ramda'
 import React from 'react'
-import { jsdom } from 'jsdom'
+import { JSDOM } from 'jsdom'
 import { shallow, mount } from 'enzyme'
 import { pureRender } from './pure-render'
 
@@ -56,10 +56,10 @@ describe('PureRender Decorator', () => {
   describe('with jsdom', () => {
 
     beforeEach(() => {
-      const doc = jsdom('<html></html>')
-      global.document = doc
-      global.window = doc.defaultView
-      global.Element = doc.defaultView.Element
+      const dom = new JSDOM('<html></html>')
+      global.window = dom.window
+      global.document = dom.window.document
+      global.Element = dom.window.Element
     })
 
     it('should update the component', () => {

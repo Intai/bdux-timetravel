@@ -228,7 +228,7 @@ describe('TimeTravel Action', () => {
       chai.expect(record({ action })).to.not.be.ok
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('history')
-        .and.has.deep.property('[0].action')
+        .and.has.nested.property('[0].action')
         .and.eql(action)
     })
 
@@ -241,7 +241,7 @@ describe('TimeTravel Action', () => {
       chai.expect(callback.calledTwice).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('history')
         .and.has.length(1)
-        .and.has.deep.property('[0].records')
+        .and.has.nested.property('[0].records')
         .and.eql([
           { action, state: 2 },
           { action, state: 3 }
@@ -256,7 +256,7 @@ describe('TimeTravel Action', () => {
       chai.expect(callback.calledTwice).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('history')
         .and.has.length(2)
-        .and.has.deep.property('[1].records[0]')
+        .and.has.nested.property('[1].records[0]')
         .and.has.property('state', 4)
     })
 
@@ -270,7 +270,7 @@ describe('TimeTravel Action', () => {
       chai.expect(callback.called).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('history')
         .and.has.length(2)
-        .and.has.deep.property('[1].records[0]')
+        .and.has.nested.property('[1].records[0]')
         .and.has.property('state', 6)
     })
 
@@ -284,7 +284,7 @@ describe('TimeTravel Action', () => {
       chai.expect(callback.called).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('history')
         .and.has.length(2)
-        .and.has.deep.property('[1].records[0]')
+        .and.has.nested.property('[1].records[0]')
         .and.has.property('state', 6)
     })
 
@@ -296,7 +296,7 @@ describe('TimeTravel Action', () => {
       chai.expect(callback.called).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('history')
         .and.has.length(1)
-        .and.has.deep.property('[0].anchor', true)
+        .and.has.nested.property('[0].anchor', true)
     })
 
     it('should reset anchor after the next recording', () => {
@@ -308,7 +308,7 @@ describe('TimeTravel Action', () => {
       chai.expect(callback.called).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('history')
         .and.has.length(2)
-        .and.has.deep.property('[0].anchor', false)
+        .and.has.nested.property('[0].anchor', false)
     })
 
     it('should ignore reverting back to unknown id', () => {
@@ -319,7 +319,7 @@ describe('TimeTravel Action', () => {
       chai.expect(callback.called).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('history')
         .and.has.length(1)
-        .and.has.deep.property('[0].anchor', false)
+        .and.has.nested.property('[0].anchor', false)
     })
 
     it('should ignore reverting with an empty history', () => {
@@ -352,7 +352,7 @@ describe('TimeTravel Action', () => {
       revert(history[0].id).onValue(callbackRevert)
       chai.expect(callbackRevert.calledOnce).to.be.true
       chai.expect(callbackRevert.lastCall.args[0]).to.have.property('timeslice')
-        .and.has.deep.property('action.id', 1)
+        .and.has.nested.property('action.id', 1)
     })
 
     it('should enable resume after reverting', () => {
@@ -387,7 +387,7 @@ describe('TimeTravel Action', () => {
       clock.tick(500)
       chai.expect(Storage.save().calledOnce).to.be.true
       chai.expect(Storage.save().lastCall.args[0]).to.have.length(1)
-        .and.has.deep.property('[0].action.id', 1)
+        .and.has.nested.property('[0].action.id', 1)
     })
 
     it('should debounce history saving into storage', () => {
@@ -456,7 +456,7 @@ describe('TimeTravel Action', () => {
       clock.tick(1)
       chai.expect(callback.calledThrice).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('timeslice')
-        .and.has.deep.property('action.id', 1)
+        .and.has.nested.property('action.id', 1)
     })
 
     it('should resume from the end of history', () => {
@@ -472,7 +472,7 @@ describe('TimeTravel Action', () => {
       clock.tick(1)
       chai.expect(callback.calledThrice).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('timeslice')
-        .and.has.deep.property('action.id', 2)
+        .and.has.nested.property('action.id', 2)
     })
 
     it('should create a clutch action', () => {

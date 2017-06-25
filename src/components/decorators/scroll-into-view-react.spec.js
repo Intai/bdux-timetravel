@@ -4,7 +4,7 @@ import chai from 'chai'
 import sinon from 'sinon'
 import R from 'ramda'
 import React from 'react'
-import { jsdom } from 'jsdom'
+import { JSDOM } from 'jsdom'
 import { shallow, mount } from 'enzyme'
 import { scrollIntoView } from './scroll-into-view-react'
 
@@ -97,10 +97,10 @@ describe('ScrollIntoView Decorator', () => {
     let list, anchor, scrollTo
 
     beforeEach(() => {
-      const doc = jsdom('<html></html>')
-      global.document = doc
-      global.window = doc.defaultView
-      global.Element = doc.defaultView.Element
+      const dom = new JSDOM('<html></html>')
+      global.window = dom.window
+      global.document = dom.window.document
+      global.Element = dom.window.Element
     })
 
     beforeEach(() => {
