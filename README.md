@@ -8,12 +8,12 @@ A [Bdux](https://github.com/Intai/bdux) middleware to record and travel back in 
 
 ## Installation
 To install as an [npm](https://www.npmjs.com/) package:
-```
+```sh
 npm install --save-dev bdux-timetravel
 ```
 
 ## Usage
-``` javascript
+```javascript
 import * as Timetravel from 'bdux-timetravel';
 import { applyMiddleware } from 'bdux';
 
@@ -22,7 +22,7 @@ applyMiddleware(
 );
 ```
 Then place `<TimeTravel />` in root component to render a sidebar for time control.
-``` javascript
+```javascript
 import React from 'react';
 import { TimeTravel } from 'bdux-timetravel';
 
