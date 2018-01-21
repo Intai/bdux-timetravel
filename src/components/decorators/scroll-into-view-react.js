@@ -60,10 +60,10 @@ const isNotHover = (() => {
   }
 })()
 
-const hasListAnchor = R.allPass([
+const hasListAnchor = R.both(
   R.prop('list'),
   R.prop('anchor')
-])
+)
 
 const isListVisible = ({ list }) => (
   list && list instanceof Element

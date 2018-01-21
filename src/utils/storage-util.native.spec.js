@@ -2,7 +2,7 @@
 
 import chai from 'chai'
 import sinon from 'sinon'
-import 'react-native-mock/mock'
+import 'react-native-mock-render/mock'
 import { AsyncStorage } from 'react-native'
 import sinonStubPromise from 'sinon-stub-promise'
 import Storage from './storage-util.native'

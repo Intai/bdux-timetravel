@@ -10,7 +10,7 @@ describe('Container Component for react-native', () => {
 
   it('should be a view', () => {
     const wrapper = shallow(<Container />)
-    chai.expect(wrapper.name()).to.equal('View')
+    chai.expect(wrapper.type()).to.equal(View)
   })
 
   it('should be able to style color', () => {

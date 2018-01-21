@@ -55,10 +55,10 @@ export default {
   ),
 
   isOnClient: R.once(
-    R.anyPass([
+    R.either(
       canUseDOM,
       isReactNative
-    ])
+    )
   ),
 
   consoleClear: R.when(

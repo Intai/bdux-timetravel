@@ -26,10 +26,10 @@ const isDeclutch = isAction(
   ActionTypes.TIMETRAVEL_DECLUTCH
 )
 
-const isNotEmptyArray = R.allPass([
+const isNotEmptyArray = R.both(
   R.is(Array),
   R.complement(R.isEmpty)
-])
+)
 
 const hasTimeslice = R.path(
   ['action', 'timeslice']
@@ -86,7 +86,7 @@ const mapToIdle = (args) => (
 
 const mapDeclutchToIdle = R.flip(R.ifElse(
   // if was declutched and not time travelling.
-  R.allPass([R.nthArg(1), isNotTimeTravel]),
+  R.both(R.nthArg(1), isNotTimeTravel),
   // change the action to do nothing.
   mapToIdle,
   // otherwise continue reducing.
@@ -152,10 +152,10 @@ export const declutchProperty = (() => {
   }
 })()
 
-const shouldDisableResume = R.allPass([
+const shouldDisableResume = R.both(
   R.nthArg(1),
   isNotTimeTravel
-])
+)
 
 const disableResume = R.pipe(
   () => TimeTravelAction.disableResume(),

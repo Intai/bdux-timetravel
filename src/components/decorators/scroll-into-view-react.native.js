@@ -7,10 +7,10 @@ const getDisplayName = (Component) => (
   Component.displayName || Component.name || 'Component'
 )
 
-const hasListAnchor = R.allPass([
+const hasListAnchor = R.both(
   R.prop('list'),
   R.prop('anchor')
-])
+)
 
 const scrollTo = (list, scrollTop) => {
   if (scrollTop >= 0) {
@@ -82,7 +82,7 @@ const scrollListTo = R.converge(
 const scrollToDiffAnchor = R.pipeP(
   getListHeight,
   R.when(
-    R.allPass([hasListHeight, isDiffAnchor]),
+    R.both(hasListHeight, isDiffAnchor),
     R.pipeP(
       getAnchorDimension,
       scrollListTo

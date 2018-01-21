@@ -17,10 +17,10 @@ const isOnClient = () => (
   Common.isOnClient()
 )
 
-const isNotEmptyArray = R.allPass([
+const isNotEmptyArray = R.both(
   R.is(Array),
   R.complement(R.isEmpty)
-])
+)
 
 const isActionEqual = R.curry((record, timeslice) => (
   timeslice.action && record.action
@@ -315,7 +315,7 @@ export const restart = () => (
 
 export const record = R.ifElse(
   // dont record time travel related action and store state.
-  R.allPass([isNotTimeAction, isNotTimeStore]),
+  R.both(isNotTimeAction, isNotTimeStore),
   // record an action with store states.
   pushRecord,
   R.F

@@ -75,7 +75,7 @@ describe('HistoryItem Component', () => {
     const params = wrapper.find('ul')
     chai.expect(params.children()).to.have.length(1)
     chai.expect(params.childAt(0).key()).to.equal('param')
-    chai.expect(params.childAt(0).text()).to.equal('param: "value"')
+    chai.expect(params.childAt(0).text()).to.match(/^param:\s+"value"$/)
   })
 
   it('should serialise action parameters', () => {
@@ -94,7 +94,7 @@ describe('HistoryItem Component', () => {
     const params = wrapper.find('ul')
     chai.expect(params.children()).to.have.length(1)
     chai.expect(params.childAt(0).key()).to.equal('nested')
-    chai.expect(params.childAt(0).text()).to.equal('nested: { param: "value" }')
+    chai.expect(params.childAt(0).text()).to.match(/^nested:\s+{\s+param:\s+"value"\s+}$/)
   })
 
   describe('with jsdom', () => {

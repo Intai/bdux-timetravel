@@ -5,7 +5,8 @@ import chai from 'chai'
 import sinon from 'sinon'
 import React from 'react'
 import { shallow } from 'enzyme'
-import 'react-native-mock/mock'
+import 'react-native-mock-render/mock'
+import { TouchableOpacity, Text } from 'react-native'
 import {
   requireIOS,
   requireAndroid } from '../utils/test-util'
@@ -34,32 +35,32 @@ describe('Button Component for react-native', () => {
 
     it('should wrap inside touchable', () => {
       const wrapper = shallow(<Button />)
-      chai.expect(wrapper.name()).to.equal('TouchableOpacity')
+      chai.expect(wrapper.type()).to.equal(TouchableOpacity)
     })
 
     it('should have default text style', () => {
       const wrapper = shallow(<Button />)
-      const text = wrapper.find('Text')
+      const text = wrapper.find(Text)
       chai.expect(text.prop('style')).to.include(styles.text)
       chai.expect(styles.text).to.have.property('fontFamily', 'Helvetica Neue')
     })
 
     it('should be able to style color', () => {
       const wrapper = shallow(<Button style={{ color: 'test' }} />)
-      const text = wrapper.find('Text')
+      const text = wrapper.find(Text)
       const style = R.assoc('color', 'test', styles.text)
       chai.expect(text.prop('style')).to.include(style)
     })
 
     it('should not be able to style marginTop', () => {
       const wrapper = shallow(<Button style={{ marginTop: 'test' }} />)
-      const text = wrapper.find('Text')
+      const text = wrapper.find(Text)
       chai.expect(text.prop('style')).to.not.have.property('marginTop')
     })
 
     it('should render child text', () => {
       const wrapper = shallow(<Button>Click</Button>)
-      const text = wrapper.find('Text')
+      const text = wrapper.find(Text)
       chai.expect(text.prop('children')).to.equal('Click')
     })
 
@@ -87,14 +88,14 @@ describe('Button Component for react-native', () => {
 
     it('should have default text style', () => {
       const wrapper = shallow(<Button />)
-      const text = wrapper.find('Text')
+      const text = wrapper.find(Text)
       chai.expect(text.prop('style')).to.include(styles.text)
       chai.expect(styles.text).to.have.property('fontFamily', 'Droid Sans')
     })
 
     it('should be able to style color', () => {
       const wrapper = shallow(<Button style={{ color: 'test' }} />)
-      const text = wrapper.find('Text')
+      const text = wrapper.find(Text)
       const style = R.assoc('color', 'test', styles.text)
       chai.expect(text.prop('style')).to.include(style)
     })

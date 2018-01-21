@@ -4,7 +4,8 @@ import chai from 'chai'
 import sinon from 'sinon'
 import React from 'react'
 import { shallow } from 'enzyme'
-import 'react-native-mock/mock'
+import 'react-native-mock-render/mock'
+import { TouchableOpacity, ListView, View, Text } from 'react-native'
 import {
   requireIOS,
   requireAndroid } from '../utils/test-util'
@@ -12,7 +13,7 @@ import TimeTravelAction from '../actions/timetravel-action'
 
 const renderFirstRow = (History, props) => {
   const wrapper = shallow(<History { ...props } />)
-  const renderRow = wrapper.find('ListView').prop('renderRow')
+  const renderRow = wrapper.find(ListView).prop('renderRow')
   return renderRow(props.timetravel.history[0])
 }
 
@@ -52,7 +53,7 @@ describe('History Component for react-native', () => {
 
       const wrapper = shallow(<History { ...props } />)
       const list = wrapper.childAt(0)
-      chai.expect(list.name()).to.equal('ListView')
+      chai.expect(list.type()).to.equal(ListView)
       chai.expect(list.prop('dataSource')).to.eql({ _dataBlob: [] })
     })
 
@@ -68,7 +69,7 @@ describe('History Component for react-native', () => {
 
       const wrapper = shallow(<History { ...props } />)
       const list = wrapper.childAt(0)
-      chai.expect(list.name()).to.equal('ListView')
+      chai.expect(list.type()).to.equal(ListView)
       chai.expect(list.prop('dataSource')).to.eql({
         _dataBlob: [{
           id: 1,
@@ -88,7 +89,7 @@ describe('History Component for react-native', () => {
       }
 
       const node = renderFirstRow(History, props)
-      chai.expect(node.type.displayName).to.equal('View')
+      chai.expect(node.type).to.equal(View)
       chai.expect(node.props.style).to.be.empty
     })
 
@@ -121,7 +122,7 @@ describe('History Component for react-native', () => {
 
       const node = renderFirstRow(History, props)
       const wrapper = shallow(<component { ...node.props } />)
-      chai.expect(wrapper.find('Text').childAt(0).text()).to.equal('TYPE')
+      chai.expect(wrapper.find(Text).childAt(0).text()).to.equal('TYPE')
     })
 
     it('should render action parameters', () => {
@@ -138,7 +139,7 @@ describe('History Component for react-native', () => {
 
       const node = renderFirstRow(History, props)
       const wrapper = shallow(<component { ...node.props } />)
-      const params = wrapper.children('View').find('Text')
+      const params = wrapper.children(View).find(Text)
       chai.expect(params).to.have.length(1)
       chai.expect(params.key()).to.equal('param')
       chai.expect(params.children()).to.have.length(3)
@@ -162,7 +163,7 @@ describe('History Component for react-native', () => {
 
       const node = renderFirstRow(History, props)
       const wrapper = shallow(<component { ...node.props } />)
-      const params = wrapper.children('View').find('Text')
+      const params = wrapper.children(View).find(Text)
       chai.expect(params).to.have.length(1)
       chai.expect(params.key()).to.equal('nested')
       chai.expect(params.childAt(2).text()).to.equal('{\n  param: "value" }')
@@ -177,7 +178,7 @@ describe('History Component for react-native', () => {
       }
 
       const wrapper = shallow(<History { ...props } />)
-      chai.expect(wrapper.node.ref).to.equal(props.refWrap)
+      chai.expect(wrapper.getElement().ref).to.equal(props.refWrap)
     })
 
     it('should reference list for scroll-into-view', () => {
@@ -189,8 +190,8 @@ describe('History Component for react-native', () => {
       }
 
       const wrapper = shallow(<History { ...props } />)
-      const list = wrapper.find('ListView')
-      chai.expect(list.node.ref).to.equal(props.refList)
+      const list = wrapper.find(ListView)
+      chai.expect(list.getElement().ref).to.equal(props.refList)
     })
 
     it('should reference anchor for scroll-into-view', () => {
@@ -223,7 +224,7 @@ describe('History Component for react-native', () => {
 
       const node = renderFirstRow(History, props)
       const wrapper = shallow(<component { ...node.props } />)
-      wrapper.find('TouchableOpacity').simulate('press')
+      wrapper.find(TouchableOpacity).simulate('press')
       chai.expect(TimeTravelAction.revert.calledOnce).to.be.true
       chai.expect(TimeTravelAction.revert.lastCall.args[0]).to.equal(1)
     })
@@ -240,7 +241,7 @@ describe('History Component for react-native', () => {
 
       const node = renderFirstRow(History, props)
       const wrapper = shallow(<component { ...node.props } />)
-      const text = wrapper.children('TouchableOpacity').find('Text')
+      const text = wrapper.children(TouchableOpacity).find(Text)
       chai.expect(text.prop('style')).to.include(styles.actionType)
     })
 
@@ -258,7 +259,7 @@ describe('History Component for react-native', () => {
 
       const node = renderFirstRow(History, props)
       const wrapper = shallow(<component { ...node.props } />)
-      const text = wrapper.children('View').find('Text')
+      const text = wrapper.children(View).find(Text)
       chai.expect(text.prop('style')).to.include(styles.actionValue)
     })
 
@@ -291,7 +292,7 @@ describe('History Component for react-native', () => {
 
       const node = renderFirstRow(History, props)
       const wrapper = shallow(<component { ...node.props } />)
-      const text = wrapper.children('TouchableOpacity').find('Text')
+      const text = wrapper.children(TouchableOpacity).find(Text)
       chai.expect(text.prop('style')).to.include(styles.actionType)
     })
 
@@ -309,7 +310,7 @@ describe('History Component for react-native', () => {
 
       const node = renderFirstRow(History, props)
       const wrapper = shallow(<component { ...node.props } />)
-      const text = wrapper.children('View').find('Text')
+      const text = wrapper.children(View).find(Text)
       chai.expect(text.prop('style')).to.include(styles.actionValue)
     })
 
