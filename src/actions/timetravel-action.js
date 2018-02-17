@@ -176,7 +176,6 @@ const createRevert = (id) => (
       .map(R.find(R.propEq('id', id))),
     skipLog: true
   })
-  .toEventStream()
   .first()
 )
 

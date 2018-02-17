@@ -11,6 +11,12 @@ import TimeTravelStore, {
 
 describe('TimeTravel Store', () => {
 
+  let clock
+
+  beforeEach(() => {
+    clock = sinon.useFakeTimers(Date.now())
+  })
+
   it('should have reducer input', () => {
     chai.expect(getReducer()).to.have.property('input')
       .and.is.instanceof(Bacon.Observable)
@@ -114,6 +120,7 @@ describe('TimeTravel Store', () => {
       }, 2)
     ))
 
+    clock.tick(1)
     chai.expect(callback.calledThrice).to.be.true
     chai.expect(callback.lastCall.args[0]).to.have.property('showHistory')
       .and.is.false
@@ -129,6 +136,10 @@ describe('TimeTravel Store', () => {
     chai.expect(callback.calledTwice).to.be.true
     chai.expect(callback.lastCall.args[0]).to.have.property('showHistory')
       .and.is.true
+  })
+
+  afterEach(() => {
+    clock.restore()
   })
 
 })
