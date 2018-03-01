@@ -1,4 +1,4 @@
-import R from 'ramda'
+import * as R from 'ramda'
 import Common from './common-util'
 
 export const reload = () => {

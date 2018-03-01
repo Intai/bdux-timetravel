@@ -1,4 +1,4 @@
-import R from 'ramda'
+import * as R from 'ramda'
 import React from 'react'
 import TimeTravelStore from '../stores/timetravel-store'
 import HistoryItem from './history-item'

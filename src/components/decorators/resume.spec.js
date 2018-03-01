@@ -2,7 +2,7 @@
 
 import chai from 'chai'
 import sinon from 'sinon'
-import R from 'ramda'
+import * as R from 'ramda'
 import React from 'react'
 import { JSDOM } from 'jsdom'
 import { shallow, mount } from 'enzyme'

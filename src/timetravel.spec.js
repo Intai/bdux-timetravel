@@ -3,7 +3,7 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonStubPromise from 'sinon-stub-promise'
-import R from 'ramda'
+import * as R from 'ramda'
 import Common from './utils/common-util'
 import Storage from './utils/storage-util'
 import ActionTypes from './actions/action-types'

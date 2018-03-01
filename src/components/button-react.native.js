@@ -1,4 +1,4 @@
-import R from 'ramda'
+import * as R from 'ramda'
 import React from 'react'
 import { TouchableOpacity, View, Text } from 'react-native'
 import styles from './button-style'

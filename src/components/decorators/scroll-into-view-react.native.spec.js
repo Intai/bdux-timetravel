@@ -2,7 +2,7 @@
 
 import chai from 'chai'
 import sinon from 'sinon'
-import R from 'ramda'
+import * as R from 'ramda'
 import React from 'react'
 import { shallow } from 'enzyme'
 import { scrollIntoView } from './scroll-into-view-react.native'

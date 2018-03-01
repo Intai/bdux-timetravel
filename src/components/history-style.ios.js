@@ -1,4 +1,4 @@
-import R from 'ramda'
+import * as R from 'ramda'
 import styles from './history-style.android'
 
 export default R.mergeWith(R.merge, styles, {

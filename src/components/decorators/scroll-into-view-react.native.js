@@ -1,4 +1,4 @@
-import R from 'ramda'
+import * as R from 'ramda'
 import React from 'react'
 import ReactNative from 'react-native'
 import { calcScrollTop }  from './scroll-into-view-react.js'
