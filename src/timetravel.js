@@ -4,7 +4,7 @@ import Common from './utils/common-util'
 import Storage from './utils/storage-util'
 import ActionTypes from './actions/action-types'
 import StoreNames from './stores/store-names';
-import TimeTravelAction from './actions/timetravel-action.js'
+import TimeTravelAction from './actions/timetravel-action'
 
 const isOnClient = () => (
   Common.isOnClient()
@@ -197,7 +197,7 @@ const getPreOutput = R.ifElse(
 )
 
 export const getPreReduce = () => {
-  let preStream = new Bacon.Bus()
+  const preStream = new Bacon.Bus()
 
   // start recording.
   TimeTravelAction.start()
