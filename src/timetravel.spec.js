@@ -2,27 +2,34 @@
 
 import chai from 'chai'
 import sinon from 'sinon'
-import sinonStubPromise from 'sinon-stub-promise'
 import * as R from 'ramda'
 import Common from './utils/common-util'
 import Storage from './utils/storage-util'
 import ActionTypes from './actions/action-types'
-import TimeTravelAction from './actions/timetravel-action'
+import * as TimeTravelAction from './actions/timetravel-action'
 import * as TimeTravel from './timetravel'
 
-sinonStubPromise(sinon)
-
-const createActionType = R.pipe(
-  R.objOf('type'),
-  R.objOf('action')
+const removeReserved = R.omit(
+  ['dispatch']
 )
 
 describe('TimeTravel Middleware', () => {
 
-  let sandbox
+  let sandbox, params
+
+  const createActionType = (type) => ({
+    ...params,
+    action: { type }
+  })
+
+  const createParams = (additional) => ({
+    ...params,
+    ...additional
+  })
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create()
+    sandbox = sinon.createSandbox()
+    params = { dispatch: sinon.stub() }
   })
 
   it('should apply middleware before reducer', () => {
@@ -41,9 +48,9 @@ describe('TimeTravel Middleware', () => {
     })
 
     it('should be transparent before reducer', () => {
-      const pluggable = TimeTravel.getPreReduce()
+      const pluggable = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
-      const value = {}
+      const value = createParams({})
 
       pluggable.output.onValue(callback)
       pluggable.input.push(value)
@@ -53,9 +60,9 @@ describe('TimeTravel Middleware', () => {
 
     it('should not record action and store states', () => {
       sandbox.stub(TimeTravelAction, 'record')
-      const pluggable = TimeTravel.getPreReduce()
+      const pluggable = TimeTravel.getPreReduce(params)
       pluggable.output.onValue()
-      pluggable.input.push({})
+      pluggable.input.push(params)
       chai.expect(TimeTravelAction.record.called).to.be.false
     })
 
@@ -67,273 +74,276 @@ describe('TimeTravel Middleware', () => {
 
     beforeEach(() => {
       sandbox.stub(Common, 'isOnClient').returns(true)
-      promiseLoad = sandbox.stub(Storage, 'load').returnsPromise()
+      sandbox.stub(Storage, 'load')
+        .returns(new Promise((resolves, rejects) => promiseLoad = { resolves, rejects }))
       TimeTravel.historyInStorageProperty.reload()
       TimeTravel.declutchProperty.reload()
     })
 
     it('should start recording', () => {
-      sandbox.stub(TimeTravelAction, 'start')
-      TimeTravel.getPreReduce()
-      chai.expect(TimeTravelAction.start.calledOnce).to.be.true
+      sandbox.stub(TimeTravelAction, 'startOnce')
+      TimeTravel.getPreReduce(params)
+      chai.expect(TimeTravelAction.startOnce.calledOnce).to.be.true
     })
 
-    it('should not disable resume', () => {
+    it('should not disable resume', async () => {
       sandbox.stub(TimeTravelAction, 'disableResume')
-      const pluggable = TimeTravel.getPreReduce()
+      const pluggable = TimeTravel.getPreReduce(params)
 
       pluggable.output.onValue()
-      pluggable.input.push({})
-      promiseLoad.resolves([])
+      pluggable.input.push(params)
+      await promiseLoad.resolves([])
       chai.expect(TimeTravelAction.disableResume.called).to.be.false
     })
 
-    it('should not disable resume when updating history', () => {
+    it('should not disable resume when updating history', async () => {
       sandbox.stub(TimeTravelAction, 'disableResume')
-      const pluggable = TimeTravel.getPreReduce()
+      const pluggable = TimeTravel.getPreReduce(params)
       const revert = createActionType(ActionTypes.TIMETRAVEL_REVERT)
       const history = createActionType(ActionTypes.TIMETRAVEL_HISTORY)
 
       pluggable.output.onValue()
       pluggable.input.push(revert)
       pluggable.input.push(history)
-      promiseLoad.resolves([])
+      await promiseLoad.resolves([])
       chai.expect(TimeTravelAction.disableResume.called).to.be.false
     })
 
-    it('should disable resume after reverting', () => {
+    it('should disable resume after reverting', async () => {
       sandbox.stub(TimeTravelAction, 'disableResume')
-      const pluggable = TimeTravel.getPreReduce()
-      const revert = {
+      const pluggable = TimeTravel.getPreReduce(params)
+      const revert = createParams({
         action: {
           type: ActionTypes.TIMETRAVEL_REVERT
         }
-      }
+      })
 
       pluggable.output.onValue()
       pluggable.input.push(revert)
-      pluggable.input.push({})
-      promiseLoad.resolves([])
+      pluggable.input.push(params)
+      await promiseLoad.resolves([])
       chai.expect(TimeTravelAction.disableResume.calledOnce).to.be.true
     })
 
-    it('should record action and store states', () => {
+    it('should record action and store states', async () => {
       sandbox.stub(TimeTravelAction, 'record')
-      const pluggable = TimeTravel.getPreReduce()
-      const value = {
+      const pluggable = TimeTravel.getPreReduce(params)
+      const value = createParams({
         action: {}
-      }
+      })
 
       pluggable.output.onValue()
       pluggable.input.push(value)
-      promiseLoad.resolves([])
+      await promiseLoad.resolves([])
       chai.expect(TimeTravelAction.record.calledOnce).to.be.true
-      chai.expect(TimeTravelAction.record.lastCall.args[0]).to.eql(value)
+      chai.expect(removeReserved(TimeTravelAction.record.lastCall.args[0])).to.eql({
+        action: {}
+      })
     })
 
-    it('should hold before history is loaded from storage', () => {
-      const pluggable = TimeTravel.getPreReduce()
+    it('should hold before history is loaded from storage', async () => {
+      const pluggable = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
 
       pluggable.output.onValue(callback)
-      pluggable.input.push({})
-      promiseLoad.rejects()
+      pluggable.input.push(params)
+      await promiseLoad.rejects()
       chai.expect(callback.called).to.be.false
     })
 
-    it('should continue after history is loaded from storage', () => {
-      const pluggable = TimeTravel.getPreReduce()
+    it('should continue after history is loaded from storage', async () => {
+      const pluggable = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
 
       pluggable.output.onValue(callback)
-      pluggable.input.push({})
-      promiseLoad.resolves([])
+      pluggable.input.push(params)
+      await promiseLoad.resolves([])
       chai.expect(callback.calledOnce).to.be.true
-      chai.expect(callback.lastCall.args[0]).to.eql({})
+      chai.expect(removeReserved(callback.lastCall.args[0])).to.eql({})
     })
 
-    it('should keep the latest loaded history from storage', () => {
-      const pluggable1 = TimeTravel.getPreReduce()
+    it('should keep the latest loaded history from storage', async () => {
+      const pluggable1 = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
       pluggable1.output.onValue(callback)
-      pluggable1.input.push({})
-      promiseLoad.resolves([])
+      pluggable1.input.push(params)
+      await promiseLoad.resolves([])
 
-      const pluggable2 = TimeTravel.getPreReduce()
+      const pluggable2 = TimeTravel.getPreReduce(params)
       pluggable2.output.onValue(callback)
-      pluggable2.input.push({ name: 'test' })
+      pluggable2.input.push(createParams({ name: 'test' }))
       chai.expect(callback.calledTwice).to.be.true
-      chai.expect(callback.lastCall.args[0]).to.eql({ name: 'test' })
+      chai.expect(removeReserved(callback.lastCall.args[0])).to.eql({ name: 'test' })
     })
 
-    it('should declutch by default when resuming from storage', () => {
-      const pluggable = TimeTravel.getPreReduce()
+    it('should declutch by default when resuming from storage', async () => {
+      const pluggable = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
 
       pluggable.output.onValue(callback)
-      pluggable.input.push({})
-      promiseLoad.resolves([{}])
+      pluggable.input.push(params)
+      await promiseLoad.resolves([{}])
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
         .and.has.property('type', ActionTypes.TIMETRAVEL_IDLE)
     })
 
-    it('should keep whether currently declutched', () => {
-      const pluggable1 = TimeTravel.getPreReduce()
+    it('should keep whether currently declutched', async () => {
+      const pluggable1 = TimeTravel.getPreReduce(params)
       const callback1 = sinon.stub()
       pluggable1.output.onValue(callback1)
-      pluggable1.input.push({})
-      promiseLoad.resolves([{}])
-      pluggable1.input.push({
+      pluggable1.input.push(params)
+      await promiseLoad.resolves([{}])
+      pluggable1.input.push(createParams({
         action: {
           type: ActionTypes.TIMETRAVEL_CLUTCH
         }
-      })
+      }))
 
-      const pluggable2 = TimeTravel.getPreReduce()
+      const pluggable2 = TimeTravel.getPreReduce(params)
       const callback2 = sinon.stub()
       pluggable2.output.onValue(callback2)
-      pluggable2.input.push({})
+      pluggable2.input.push(params)
       chai.expect(callback2.calledOnce).to.be.true
-      chai.expect(callback2.lastCall.args[0]).to.eql({})
+      chai.expect(removeReserved(callback2.lastCall.args[0])).to.eql({})
     })
 
-    it('should skip logging action which has been blocked', () => {
-      const pluggable = TimeTravel.getPreReduce()
+    it('should skip logging action which has been blocked', async () => {
+      const pluggable = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
 
       pluggable.output.onValue(callback)
-      promiseLoad.resolves([{}])
-      pluggable.input.push({})
+      await promiseLoad.resolves([{}])
+      pluggable.input.push(params)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
         .and.has.property('skipLog', true)
     })
 
-    it('should clutch to send action through', () => {
-      const pluggable = TimeTravel.getPreReduce()
+    it('should clutch to send action through', async () => {
+      const pluggable = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
-      const clutch = {
+      const clutch = createParams({
         action: {
           type: ActionTypes.TIMETRAVEL_CLUTCH
         }
-      }
+      })
 
       pluggable.output.onValue(callback)
-      promiseLoad.resolves([{}])
+      await promiseLoad.resolves([{}])
       pluggable.input.push(clutch)
-      pluggable.input.push({})
+      pluggable.input.push(params)
       chai.expect(callback.calledTwice).to.be.true
-      chai.expect(callback.lastCall.args[0]).to.eql({})
+      chai.expect(removeReserved(callback.lastCall.args[0])).to.eql({})
     })
 
-    it('should declutch to block action from flowing through', () => {
-      const pluggable = TimeTravel.getPreReduce()
+    it('should declutch to block action from flowing through', async () => {
+      const pluggable = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
-      const declutch = {
+      const declutch = createParams({
         action: {
           type: ActionTypes.TIMETRAVEL_DECLUTCH
         }
-      }
+      })
 
       pluggable.output.onValue(callback)
-      promiseLoad.resolves([])
+      await promiseLoad.resolves([])
       pluggable.input.push(declutch)
-      pluggable.input.push({})
+      pluggable.input.push(params)
       chai.expect(callback.calledTwice).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
         .and.has.property('type', ActionTypes.TIMETRAVEL_IDLE)
     })
 
-    it('should not block timetravel toggle action', () => {
-      const pluggable = TimeTravel.getPreReduce()
+    it('should not block timetravel toggle action', async () => {
+      const pluggable = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
-      const toggle = {
+      const toggle = createParams({
         action: {
           type: ActionTypes.TIMETRAVEL_TOGGLE_HISTORY
         }
-      }
+      })
 
       pluggable.output.onValue(callback)
-      promiseLoad.resolves([{}])
+      await promiseLoad.resolves([{}])
       pluggable.input.push(toggle)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
         .and.has.property('type', ActionTypes.TIMETRAVEL_TOGGLE_HISTORY)
     })
 
-    it('should not block timetravel history action', () => {
-      const pluggable = TimeTravel.getPreReduce()
+    it('should not block timetravel history action', async () => {
+      const pluggable = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
-      const history = {
+      const history = createParams({
         action: {
           type: ActionTypes.TIMETRAVEL_HISTORY
         }
-      }
+      })
 
       pluggable.output.onValue(callback)
-      promiseLoad.resolves([{}])
+      await promiseLoad.resolves([{}])
       pluggable.input.push(history)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
         .and.has.property('type', ActionTypes.TIMETRAVEL_HISTORY)
     })
 
-    it('should not block timetravel revert action', () => {
-      const pluggable = TimeTravel.getPreReduce()
+    it('should not block timetravel revert action', async () => {
+      const pluggable = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
-      const revert = {
+      const revert = createParams({
         action: {
           type: ActionTypes.TIMETRAVEL_REVERT
         }
-      }
+      })
 
       pluggable.output.onValue(callback)
-      promiseLoad.resolves([{}])
+      await promiseLoad.resolves([{}])
       pluggable.input.push(revert)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
         .and.has.property('type', ActionTypes.TIMETRAVEL_REVERT)
     })
 
-    it('should not block timetravel declutch action', () => {
-      const pluggable = TimeTravel.getPreReduce()
+    it('should not block timetravel declutch action', async () => {
+      const pluggable = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
-      const declutch = {
+      const declutch = createParams({
         action: {
           type: ActionTypes.TIMETRAVEL_DECLUTCH
         }
-      }
+      })
 
       pluggable.output.onValue(callback)
-      promiseLoad.resolves([{}])
+      await promiseLoad.resolves([{}])
       pluggable.input.push(declutch)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
         .and.has.property('type', ActionTypes.TIMETRAVEL_DECLUTCH)
     })
 
-    it('should not block timetravel clutch action', () => {
-      const pluggable = TimeTravel.getPreReduce()
+    it('should not block timetravel clutch action', async () => {
+      const pluggable = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
-      const clutch = {
+      const clutch = createParams({
         action: {
           type: ActionTypes.TIMETRAVEL_CLUTCH
         }
-      }
+      })
 
       pluggable.output.onValue(callback)
-      promiseLoad.resolves([{}])
+      await promiseLoad.resolves([{}])
       pluggable.input.push(clutch)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('action')
         .and.has.property('type', ActionTypes.TIMETRAVEL_CLUTCH)
     })
 
-    it('should revert back to a timeslice', () => {
-      const pluggable = TimeTravel.getPreReduce()
+    it('should revert back to a timeslice', async () => {
+      const pluggable = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
-      const revert = {
+      const revert = createParams({
         name: 'store',
         action: {
           type: ActionTypes.TIMETRAVEL_REVERT,
@@ -344,20 +354,20 @@ describe('TimeTravel Middleware', () => {
             }]
           }
         }
-      }
+      })
 
       pluggable.output.onValue(callback)
-      promiseLoad.resolves([{}])
+      await promiseLoad.resolves([{}])
       pluggable.input.push(revert)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('state')
         .and.equal('data')
     })
 
-    it('should revert state back to null for unknown store', () => {
-      const pluggable = TimeTravel.getPreReduce()
+    it('should revert state back to null for unknown store', async () => {
+      const pluggable = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
-      const revert = {
+      const revert = createParams({
         name: 'store',
         action: {
           type: ActionTypes.TIMETRAVEL_REVERT,
@@ -368,29 +378,29 @@ describe('TimeTravel Middleware', () => {
             }]
           }
         }
-      }
+      })
 
       pluggable.output.onValue(callback)
-      promiseLoad.resolves([{}])
+      await promiseLoad.resolves([{}])
       pluggable.input.push(revert)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('state')
         .and.is.null
     })
 
-    it('should revert state back to null for missing time records', () => {
-      const pluggable = TimeTravel.getPreReduce()
+    it('should revert state back to null for missing time records', async () => {
+      const pluggable = TimeTravel.getPreReduce(params)
       const callback = sinon.stub()
-      const revert = {
+      const revert = createParams({
         name: 'store',
         action: {
           type: ActionTypes.TIMETRAVEL_REVERT,
           timeslice: {}
         }
-      }
+      })
 
       pluggable.output.onValue(callback)
-      promiseLoad.resolves([{}])
+      await promiseLoad.resolves([{}])
       pluggable.input.push(revert)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.have.property('state')

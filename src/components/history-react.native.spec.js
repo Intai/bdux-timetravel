@@ -9,7 +9,7 @@ import { TouchableOpacity, ListView, View, Text } from 'react-native'
 import {
   requireIOS,
   requireAndroid } from '../utils/test-util'
-import TimeTravelAction from '../actions/timetravel-action'
+import * as TimeTravelAction from '../actions/timetravel-action'
 
 const renderFirstRow = (History, props) => {
   const wrapper = shallow(<History { ...props } />)
@@ -22,7 +22,7 @@ describe('History Component for react-native', () => {
   let sandbox
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create()
+    sandbox = sinon.createSandbox()
     delete require.cache[require.resolve('./history-react.native')]
   })
 
@@ -214,6 +214,7 @@ describe('History Component for react-native', () => {
       sandbox.stub(TimeTravelAction, 'revert')
 
       const props = {
+        dispatch: sinon.stub(),
         timetravel: {
           history: [{
             id: 1,

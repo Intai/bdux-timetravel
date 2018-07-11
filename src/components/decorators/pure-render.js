@@ -20,8 +20,8 @@ export const pureRender = (Component = R.F) => (
     state = {}
 
     /* istanbul ignore next */
-    constructor() {
-      super()
+    constructor(props) {
+      super(props)
     }
 
     shouldComponentUpdate(nextProps, nextState) {

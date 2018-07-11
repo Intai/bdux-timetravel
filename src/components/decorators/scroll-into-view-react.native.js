@@ -36,8 +36,10 @@ const getListHeight = ({ wrap, list, anchor }) => (
   })
 )
 
-const findNodeHandle = (
-  ReactNative.findNodeHandle || R.F
+const findNodeHandle = (...args) => (
+  (ReactNative.findNodeHandle)
+    ? ReactNative.findNodeHandle(...args)
+    : false
 )
 
 const getAnchorDimension = ({ list, anchor, listHeight }) => (
@@ -102,8 +104,8 @@ export const scrollIntoView = (Component = R.F) => (
     state = {}
 
     /* istanbul ignore next */
-    constructor() {
-      super()
+    constructor(props) {
+      super(props)
     }
 
     onLayout() {

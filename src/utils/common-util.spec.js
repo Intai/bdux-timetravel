@@ -13,7 +13,7 @@ describe('Common Utilities', () => {
   let sandbox
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create()
+    sandbox = sinon.createSandbox()
   })
 
   it('should not be able to use dom when there is no window', () => {

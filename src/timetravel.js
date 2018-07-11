@@ -4,7 +4,7 @@ import Common from './utils/common-util'
 import Storage from './utils/storage-util'
 import ActionTypes from './actions/action-types'
 import StoreNames from './stores/store-names';
-import TimeTravelAction from './actions/timetravel-action'
+import * as TimeTravelAction from './actions/timetravel-action'
 
 const isOnClient = () => (
   Common.isOnClient()
@@ -152,15 +152,19 @@ export const declutchProperty = (() => {
   }
 })()
 
+const dispatchRecordAction = (params) => {
+  params.dispatch(TimeTravelAction.record(params))
+}
+
 const shouldDisableResume = R.both(
   R.nthArg(1),
   isNotTimeTravel
 )
 
-const disableResume = R.pipe(
-  () => TimeTravelAction.disableResume(),
-  R.F
-)
+const disableResume = ({ dispatch }) => {
+  dispatch(TimeTravelAction.disableResume())
+  return false
+}
 
 const disableResumeAfterHadRevert = R.cond([
   [isRevert, R.T],
@@ -183,7 +187,7 @@ const getPreOutputOnClient = (preStream) => (
   // filter out actions while declutched.
   ], mapDeclutchToIdle)
   // record the action and store states.
-  .doAction(TimeTravelAction.record)
+  .doAction(dispatchRecordAction)
   // disable resuming after done reverting.
   .doAction(disableResumeAfterRevert)
   // handle revert action.
@@ -196,11 +200,11 @@ const getPreOutput = R.ifElse(
   R.identity
 )
 
-export const getPreReduce = () => {
+export const getPreReduce = ({ dispatch }) => {
   const preStream = new Bacon.Bus()
 
   // start recording.
-  TimeTravelAction.start()
+  dispatch(TimeTravelAction.startOnce())
 
   return {
     input: preStream,

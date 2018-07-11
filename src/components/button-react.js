@@ -1,5 +1,6 @@
 import * as R from 'ramda'
 import React from 'react'
+import Common from '../utils/common-util'
 import styles from './button-style'
 import { createComponent } from 'bdux'
 
@@ -10,7 +11,8 @@ const mergeButtonStyle = R.pipe(
 )
 
 export const Button = ({ style, ...props }) => (
-  <button { ...props }
+  <button
+    { ...Common.removeReserved(props) }
     style={ mergeButtonStyle(style) }
   />
 )

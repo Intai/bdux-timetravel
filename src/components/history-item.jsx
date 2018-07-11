@@ -1,13 +1,13 @@
 import * as R from 'ramda'
 import React from 'react'
-import TimeTravelAction from '../actions/timetravel-action'
+import * as TimeTravelAction from '../actions/timetravel-action'
 import styles from './history-style'
 import { pureRender } from './decorators/pure-render'
 import { createComponent } from 'bdux'
 
-const onRevert = R.curryN(2, (id) => {
-  TimeTravelAction.revert(id)
-})
+const onRevert = (dispatch, id) => () => {
+  dispatch(TimeTravelAction.revert(id))
+}
 
 const formatValue = (value) => (
   // todo: expandable tree view.
@@ -45,13 +45,13 @@ const getListItemStyle = (record) => (
   ])
 )
 
-const renderHistoryItem = ({ record, refAnchor }) => (
+const renderHistoryItem = ({ dispatch, record, refAnchor }) => (
   <li
     ref={cleanRef(record.anchor && refAnchor)}
     style={getListItemStyle(record)}
   >
     <div
-      onClick={onRevert(record.id)}
+      onClick={onRevert(dispatch, record.id)}
       style={styles.actionType}
     >
       {record.action.type}

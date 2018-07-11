@@ -7,14 +7,14 @@ import { JSDOM } from 'jsdom'
 import { shallow, mount } from 'enzyme'
 import { HistoryItem } from './history-item'
 import styles from './history-style'
-import TimeTravelAction from '../actions/timetravel-action'
+import * as TimeTravelAction from '../actions/timetravel-action'
 
 describe('HistoryItem Component', () => {
 
   let sandbox
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create()
+    sandbox = sinon.createSandbox()
   })
 
   it('should render nothing by default', () => {
@@ -137,8 +137,8 @@ describe('HistoryItem Component', () => {
 
     it('should revert on click', () => {
       sandbox.stub(TimeTravelAction, 'revert')
-
       const props = {
+        dispatch: sinon.stub(),
         record: {
           id: 1,
           action: {}

@@ -16,7 +16,7 @@ describe('Button Component for react-native', () => {
   let sandbox
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create()
+    sandbox = sinon.createSandbox()
     delete require.cache[require.resolve('./button-react.native')]
   })
 

@@ -3,48 +3,47 @@ import React from 'react'
 import Button from './button-react'
 import Container from './container-react'
 import History from './history-react'
-import TimeTravelAction from '../actions/timetravel-action'
+import * as TimeTravelAction from '../actions/timetravel-action'
 import TimeTravelStore from '../stores/timetravel-store'
 import styles from './timetravel-style'
 import { pureRender } from './decorators/pure-render'
 import { createComponent } from 'bdux'
 
-const isDeclutch = R.pipe(
-  R.defaultTo({}),
-  R.prop('declutch')
+const isDeclutch = R.path(
+  ['timetravel', 'declutch']
 )
 
 const shouldShowHistory = (timetravel) => (
   timetravel && timetravel.showHistory
 )
 
-const getContainerStyle = (timetravel) => (
+const getContainerStyle = ({ timetravel }) => (
   R.mergeAll([
     styles.container,
     !shouldShowHistory(timetravel) && styles.hideHistory || {}
   ])
 )
 
-const renderRestart = () => (
+const renderRestart = ({ bindToDispatch }) => (
   <Button
-    onClick={TimeTravelAction.restart}
+    onClick={bindToDispatch(TimeTravelAction.restart)}
     style={styles.restart}
   >
     Restart
   </Button>
 )
 
-const renderClutchButton = () => (
+const renderClutchButton = ({ bindToDispatch }) => (
   <Button
-    onClick={TimeTravelAction.clutch}
+    onClick={bindToDispatch(TimeTravelAction.clutch)}
     style={styles.clutch}
   >
     Clutch
   </Button>
 )
 
-const renderDeclutchButton = () => (
-  <Button onClick={TimeTravelAction.declutch}>
+const renderDeclutchButton = ({ bindToDispatch }) => (
+  <Button onClick={bindToDispatch(TimeTravelAction.declutch)}>
     Declutch
   </Button>
 )
@@ -64,25 +63,24 @@ const getToggleHistoryText = (timetravel) => (
     : 'Show History'
 )
 
-const renderToggleHistory = (timetravel) => (
-  <Button onClick={TimeTravelAction.toggleHistory}>
+const renderToggleHistory = ({ bindToDispatch, timetravel }) => (
+  <Button onClick={bindToDispatch(TimeTravelAction.toggleHistory)}>
     { getToggleHistoryText(timetravel) }
   </Button>
 )
 
-export const TimeTravel = ({ timetravel }) => (
-  <Container style={getContainerStyle(timetravel)}>
-    {renderRestart()}
-    {renderClutch(timetravel)}
-    {renderToggleHistory(timetravel)}
+export const TimeTravel = (props) => (
+  <Container style={getContainerStyle(props)}>
+    {renderRestart(props)}
+    {renderClutch(props)}
+    {renderToggleHistory(props)}
     <History />
   </Container>
 )
 
-const TimeTravelDecorated = R.compose(
-  pureRender
+export default R.pipe(
+  pureRender,
+  createComponent({
+    timetravel: TimeTravelStore
+  })
 )(TimeTravel)
-
-export default createComponent(TimeTravelDecorated, {
-  timetravel: TimeTravelStore
-})

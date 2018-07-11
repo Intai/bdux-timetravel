@@ -13,7 +13,7 @@ describe('Test Utilities', () => {
   let sandbox
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create()
+    sandbox = sinon.createSandbox()
   })
 
   it('should hijack module findPath to ios', () => {

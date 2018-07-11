@@ -12,6 +12,12 @@ describe('Container Component', () => {
     chai.expect(wrapper.name()).to.equal('div')
   })
 
+  it('should remove reserved props', () => {
+    const wrapper = shallow(<Container dispatch bindToDispatch />)
+    chai.expect(wrapper.find('div').props())
+      .to.not.have.keys(['dispatch', 'bindToDispatch'])
+  })
+
   it('should be able to style color', () => {
     const wrapper = shallow(<Container style={{ color: 'test' }} />)
     chai.expect(wrapper.prop('style')).to.have.property('color', 'test')

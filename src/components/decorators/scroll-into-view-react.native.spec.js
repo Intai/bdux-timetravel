@@ -4,6 +4,7 @@ import chai from 'chai'
 import sinon from 'sinon'
 import * as R from 'ramda'
 import React from 'react'
+import ReactNative from 'react-native'
 import { shallow } from 'enzyme'
 import { scrollIntoView } from './scroll-into-view-react.native'
 
@@ -57,6 +58,12 @@ const defer = (done, callback) => {
 }
 
 describe('ScrollIntoView Decorator for react-native', () => {
+
+  let sandbox
+
+  beforeEach(() => {
+    sandbox = sinon.createSandbox()
+  })
 
   it('should create a react component', () => {
     const Test = scrollIntoView(R.F)
@@ -234,6 +241,26 @@ describe('ScrollIntoView Decorator for react-native', () => {
     defer(done, () => {
       chai.expect(list.scrollTo.called).to.be.false
     })
+  })
+
+  it('should not find node handle', (done) => {
+    const { wrap, list, anchor } = createElements({
+      wrapHeight: 20
+    })
+
+    sandbox.spy(anchor, 'measureLayout')
+    sandbox.stub(ReactNative, 'findNodeHandle').value(undefined)
+
+    const wrapper = renderScrollIntoView(wrap, list, anchor)
+    wrapper.simulate('layout')
+    defer(done, () => {
+      chai.expect(anchor.measureLayout.calledOnce).to.be.true
+      chai.expect(anchor.measureLayout.lastCall.args[0]).to.be.false
+    })
+  })
+
+  afterEach(() => {
+    sandbox.restore()
   })
 
 })

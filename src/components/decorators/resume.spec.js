@@ -7,14 +7,14 @@ import React from 'react'
 import { JSDOM } from 'jsdom'
 import { shallow, mount } from 'enzyme'
 import { decorateComponent as resume } from './resume'
-import TimeTravelAction from '../../actions/timetravel-action';
+import { resume as createResumeAction } from '../../actions/timetravel-action';
 
 describe('Resume Decorator', () => {
 
   let sandbox
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create()
+    sandbox = sinon.createSandbox()
   })
 
   it('should create a react component', () => {
@@ -43,6 +43,12 @@ describe('Resume Decorator', () => {
     chai.expect(Test.defaultProps).to.eql({})
   })
 
+  it('should render nothing', () => {
+    const Test = resume()
+    const wrapper = shallow(<Test />)
+    chai.expect(wrapper.html()).to.equal('')
+  })
+
   it('should pass on all props', () => {
     const Component = sinon.stub().returns(false)
     const Test = resume(Component)
@@ -64,10 +70,11 @@ describe('Resume Decorator', () => {
     })
 
     it('should create a resume action on mount', () => {
-      sandbox.stub(TimeTravelAction, 'resume')
+      const callback = sinon.stub()
       const Test = resume()
-      mount(<Test />)
-      chai.expect(TimeTravelAction.resume.calledOnce).to.be.true
+      mount(<Test dispatch={callback} />)
+      chai.expect(callback.calledOnce).to.be.true
+      chai.expect(callback.lastCall.args[0]).to.eql(createResumeAction())
     })
 
   })

@@ -1,6 +1,6 @@
 import * as R from 'ramda'
 import React from 'react'
-import TimeTravelAction from '../../actions/timetravel-action'
+import { resume } from '../../actions/timetravel-action'
 
 const getDisplayName = (Component) => (
   Component.displayName || Component.name || 'Component'
@@ -12,12 +12,14 @@ export const decorateComponent = (Component = R.F) => (
     static defaultProps = {}
 
     /* istanbul ignore next */
-    constructor() {
-      super()
+    constructor(props) {
+      super(props)
     }
 
     componentDidMount() {
-      TimeTravelAction.resume()
+      if (this.props.dispatch) {
+        this.props.dispatch(resume())
+      }
     }
 
     render() {

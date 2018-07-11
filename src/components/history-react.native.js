@@ -1,7 +1,7 @@
 import * as R from 'ramda'
 import React from 'react'
 import { TouchableOpacity, ListView, View, Text } from 'react-native'
-import TimeTravelAction from '../actions/timetravel-action'
+import * as TimeTravelAction from '../actions/timetravel-action'
 import TimeTravelStore from '../stores/timetravel-store'
 import styles from './history-style'
 import { pureRender } from './decorators/pure-render'
@@ -13,8 +13,8 @@ const hasHistory = R.pipe(
   R.is(Array)
 )
 
-const onRevert = (id) => () => {
-  TimeTravelAction.revert(id)
+const onRevert = (dispatch, id) => () => {
+  dispatch(TimeTravelAction.revert(id))
 }
 
 const formatValue = (value) => (
@@ -48,11 +48,11 @@ const getListItemStyle = (record) => (
   ])
 )
 
-const renderRecord = R.curry((refAnchor, record) => (
+const renderRecord = R.curry(({ dispatch, refAnchor }, record) => (
   <View ref={record.anchor && refAnchor}
     style={getListItemStyle(record)}
   >
-    <TouchableOpacity onPress={onRevert(record.id)}>
+    <TouchableOpacity onPress={onRevert(dispatch, record.id)}>
       <View style={styles.actionTypeWrap}>
         <Text style={styles.actionType}>
           {record.action.type}
@@ -80,7 +80,7 @@ const createHistoryDataSource = (() => {
   )
 })()
 
-const renderHistory = ({ timetravel, refWrap, refList, refAnchor, ...props }) => (
+const renderHistory = ({ timetravel, refWrap, refList, ...props }) => (
   <View
     collapsable={false}
     ref={refWrap}
@@ -91,7 +91,7 @@ const renderHistory = ({ timetravel, refWrap, refList, refAnchor, ...props }) =>
       dataSource={createHistoryDataSource(timetravel)}
       enableEmptySections
       ref={refList}
-      renderRow={renderRecord(refAnchor)}
+      renderRow={renderRecord(props)}
       style={styles.list}
     />
   </View>

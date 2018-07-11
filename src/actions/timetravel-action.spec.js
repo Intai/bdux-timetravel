@@ -3,16 +3,17 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import Bacon from 'baconjs'
-import sinonStubPromise from 'sinon-stub-promise'
 import Common from '../utils/common-util'
 import Storage from '../utils/storage-util'
 import Browser from '../utils/browser-util'
 import ActionTypes from '../actions/action-types'
 import StoreNames from '../stores/store-names'
-import TimeTravelAction, {
+import {
   historyInStorageStream,
   historyProperty,
+  disableResume,
   start,
+  startOnce,
   record,
   resume,
   restart,
@@ -21,14 +22,12 @@ import TimeTravelAction, {
   declutch,
   toggleHistory } from './timetravel-action'
 
-sinonStubPromise(sinon)
-
 describe('TimeTravel Action', () => {
 
   let sandbox, clock
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create()
+    sandbox = sinon.createSandbox()
     clock = sinon.useFakeTimers(Date.now())
   })
 
@@ -55,8 +54,10 @@ describe('TimeTravel Action', () => {
 
     beforeEach(() => {
       sandbox.stub(Common, 'isOnClient').returns(true)
-      promiseLoad = sandbox.stub(Storage, 'load').returnsPromise()
-      promiseRemove = sandbox.stub(Storage, 'remove').returnsPromise()
+      sandbox.stub(Storage, 'load')
+        .returns(new Promise(resolves => promiseLoad = { resolves }))
+      sandbox.stub(Storage, 'remove')
+        .returns(new Promise(resolves => promiseRemove = { resolves }))
       sandbox.stub(Storage, 'save').returns(sinon.stub())
       historyInStorageStream.reload()
       historyProperty.reload()
@@ -67,8 +68,8 @@ describe('TimeTravel Action', () => {
     })
 
     it('should start only once', () => {
-      TimeTravelAction.start()
-      chai.expect(TimeTravelAction.start()).to.not.be.ok
+      startOnce()
+      chai.expect(startOnce()).to.not.be.ok
     })
 
     it('should start without a default action', () => {
@@ -77,24 +78,24 @@ describe('TimeTravel Action', () => {
       chai.expect(callback.called).to.be.false
     })
 
-    it('should not start with null from storage', () => {
+    it('should not start with null from storage', async () => {
       const callback = sinon.stub()
       start().onValue(callback)
-      promiseLoad.resolves(null)
+      await promiseLoad.resolves(null)
       chai.expect(callback.called).to.be.false
     })
 
-    it('should not start with an empty array from storage', () => {
+    it('should not start with an empty array from storage', async () => {
       const callback = sinon.stub()
       start().onValue(callback)
-      promiseLoad.resolves([])
+      await promiseLoad.resolves([])
       chai.expect(callback.called).to.be.false
     })
 
-    it('should start with a non-empty array from storage', () => {
+    it('should start with a non-empty array from storage', async () => {
       const callback = sinon.stub()
       start().onValue(callback)
-      promiseLoad.resolves([{}])
+      await promiseLoad.resolves([{}])
       chai.expect(callback.calledTwice).to.be.true
       chai.expect(callback.firstCall.args[0]).to.eql({
         type: ActionTypes.TIMETRAVEL_HISTORY,
@@ -103,10 +104,10 @@ describe('TimeTravel Action', () => {
       })
     })
 
-    it('should start declutched with a non-empty array from storage', () => {
+    it('should start declutched with a non-empty array from storage', async () => {
       const callback = sinon.stub()
       start().onValue(callback)
-      promiseLoad.resolves([{}])
+      await promiseLoad.resolves([{}])
       chai.expect(callback.calledTwice).to.be.true
       chai.expect(callback.lastCall.args[0]).to.eql({
         type: ActionTypes.TIMETRAVEL_DECLUTCH,
@@ -114,12 +115,12 @@ describe('TimeTravel Action', () => {
       })
     })
 
-    it('should clear history to restart', () => {
+    it('should clear history to restart', async () => {
       const callback = sinon.stub()
       start().onValue(callback)
-      promiseLoad.resolves([{}])
+      await promiseLoad.resolves([{}])
       restart().onValue()
-      promiseRemove.resolves()
+      await promiseRemove.resolves()
       chai.expect(callback.calledThrice).to.be.true
       chai.expect(callback.lastCall.args[0]).to.eql({
         type: ActionTypes.TIMETRAVEL_HISTORY,
@@ -128,24 +129,24 @@ describe('TimeTravel Action', () => {
       })
     })
 
-    it('should reload browser to restart', () => {
+    it('should reload browser to restart', async () => {
       sandbox.stub(Browser, 'reload')
       restart().onValue()
-      promiseRemove.resolves()
+      await promiseRemove.resolves()
       chai.expect(Browser.reload.called).to.be.true
     })
 
-    it('should clear console to restart', () => {
+    it('should clear console to restart', async () => {
       sandbox.stub(Common, 'consoleClear')
       restart().onValue()
-      promiseRemove.resolves()
+      await promiseRemove.resolves()
       chai.expect(Common.consoleClear.called).to.be.true
     })
 
-    it('should create a revert action to restart', () => {
+    it('should create a revert action to restart', async () => {
       const callback = sinon.stub()
       restart().onValue(callback)
-      promiseRemove.resolves()
+      await promiseRemove.resolves()
       chai.expect(callback.calledTwice).to.be.true
       chai.expect(callback.firstCall.args[0]).to.eql({
         type: ActionTypes.TIMETRAVEL_REVERT,
@@ -154,10 +155,10 @@ describe('TimeTravel Action', () => {
       })
     })
 
-    it('should clutch by default after restart', () => {
+    it('should clutch by default after restart', async () => {
       const callback = sinon.stub()
       restart().onValue(callback)
-      promiseRemove.resolves()
+      await promiseRemove.resolves()
       chai.expect(callback.calledTwice).to.be.true
       chai.expect(callback.lastCall.args[0]).to.eql({
         type: ActionTypes.TIMETRAVEL_CLUTCH,
@@ -355,10 +356,10 @@ describe('TimeTravel Action', () => {
         .and.has.nested.property('action.id', 1)
     })
 
-    it('should enable resume after reverting', () => {
+    it('should enable resume after reverting', async () => {
       const callback = sinon.stub()
       start().onValue(callback)
-      promiseLoad.resolves([])
+      await promiseLoad.resolves([])
       revert('unknown')
       callback.reset()
 
@@ -369,11 +370,11 @@ describe('TimeTravel Action', () => {
         .to.equal(ActionTypes.TIMETRAVEL_REVERT)
     })
 
-    it('should disable resume', () => {
+    it('should disable resume', async () => {
       const callback = sinon.stub()
       start().onValue(callback)
-      promiseLoad.resolves([{}])
-      TimeTravelAction.disableResume()
+      await promiseLoad.resolves([{}])
+      disableResume()
       callback.reset()
 
       resume()
@@ -399,19 +400,19 @@ describe('TimeTravel Action', () => {
       chai.expect(Storage.save().calledOnce).to.be.true
     })
 
-    it('should not resume without history from storage', () => {
+    it('should not resume without history from storage', async () => {
       const callback = sinon.stub()
       start().onValue(callback)
-      promiseLoad.resolves(undefined)
+      await promiseLoad.resolves(undefined)
       resume()
       clock.tick(1)
       chai.expect(callback.called).to.be.false
     })
 
-    it('should not resume with an empty array from storage', () => {
+    it('should not resume with an empty array from storage', async () => {
       const callback = sinon.stub()
       start().onValue(callback)
-      promiseLoad.resolves([])
+      await promiseLoad.resolves([])
       resume()
       clock.tick(1)
       chai.expect(callback.called).to.be.false
@@ -425,10 +426,10 @@ describe('TimeTravel Action', () => {
       chai.expect(callback.called).to.be.false
     })
 
-    it('should create a resume action', () => {
+    it('should create a resume action', async () => {
       const callback = sinon.stub()
       start().onValue(callback)
-      promiseLoad.resolves([{}])
+      await promiseLoad.resolves([{}])
       callback.reset()
 
       resume()
@@ -443,7 +444,7 @@ describe('TimeTravel Action', () => {
       })
     })
 
-    it('should resume from the anchor', () => {
+    it('should resume from the anchor', async () => {
       const history = [
         { action: { id: 1 }, anchor: true },
         { action: { id: 2 } }
@@ -451,7 +452,7 @@ describe('TimeTravel Action', () => {
 
       const callback = sinon.stub()
       start().onValue(callback)
-      promiseLoad.resolves(history)
+      await promiseLoad.resolves(history)
       resume()
       clock.tick(1)
       chai.expect(callback.calledThrice).to.be.true
@@ -459,7 +460,7 @@ describe('TimeTravel Action', () => {
         .and.has.nested.property('action.id', 1)
     })
 
-    it('should resume from the end of history', () => {
+    it('should resume from the end of history', async () => {
       const history = [
         { action: { id: 1 } },
         { action: { id: 2 } }
@@ -467,7 +468,7 @@ describe('TimeTravel Action', () => {
 
       const callback = sinon.stub()
       start().onValue(callback)
-      promiseLoad.resolves(history)
+      await promiseLoad.resolves(history)
       resume()
       clock.tick(1)
       chai.expect(callback.calledThrice).to.be.true

@@ -5,7 +5,6 @@ import StoreNames from '../stores/store-names'
 import Common from '../utils/common-util'
 import Storage from '../utils/storage-util'
 import Browser from '../utils/browser-util'
-import { bindToDispatch } from 'bdux'
 
 const recordStream = new Bacon.Bus()
 const resumeStream = new Bacon.Bus()
@@ -198,7 +197,7 @@ const enableResume = () => {
   filterResumeStream.push(true)
 }
 
-const disableResume = () => {
+export const disableResume = () => {
   filterResumeStream.push(false)
 }
 
@@ -290,6 +289,10 @@ export const start = R.ifElse(
   R.F
 )
 
+export const startOnce = onceThenNull(
+  start
+)
+
 // reapply the anchor action and store states.
 export const resume = R.ifElse(
   isOnClient,
@@ -336,16 +339,4 @@ export const clutch = createClutch
 export const toggleHistory = () => ({
   type: ActionTypes.TIMETRAVEL_TOGGLE_HISTORY,
   skipLog: true
-})
-
-export default bindToDispatch({
-  start: onceThenNull(start),
-  record,
-  resume,
-  restart,
-  revert,
-  clutch,
-  declutch,
-  toggleHistory,
-  disableResume
 })

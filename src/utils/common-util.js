@@ -50,6 +50,10 @@ export default {
 
   canUseDOM: canUseDOMOnce,
 
+  removeReserved: R.omit(
+    ['bdux', 'dispatch', 'bindToDispatch']
+  ),
+
   isReactNative: R.once(
     isReactNative
   ),

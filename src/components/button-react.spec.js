@@ -15,6 +15,12 @@ describe('Button Component', () => {
     chai.expect(wrapper.name()).to.equal('button')
   })
 
+  it('should remove reserved props', () => {
+    const wrapper = shallow(<Button dispatch bindToDispatch />)
+    chai.expect(wrapper.find('button').props())
+      .to.not.have.keys(['dispatch', 'bindToDispatch'])
+  })
+
   it('should have default button style', () => {
     const wrapper = shallow(<Button />)
     chai.expect(wrapper.prop('style')).to.include(styles.button)

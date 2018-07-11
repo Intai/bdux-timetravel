@@ -1,4 +1,4 @@
-import Common from '../utils/common-util';
+import Common from '../utils/common-util'
 
 export default Common.createObjOfConsts([
   'TIMETRAVEL_TOGGLE_HISTORY',
@@ -7,4 +7,4 @@ export default Common.createObjOfConsts([
   'TIMETRAVEL_DECLUTCH',
   'TIMETRAVEL_CLUTCH',
   'TIMETRAVEL_IDLE'
-]);
+])

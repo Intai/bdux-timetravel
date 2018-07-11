@@ -4,17 +4,14 @@ import chai from 'chai'
 import sinon from 'sinon'
 import 'react-native-mock-render/mock'
 import { AsyncStorage } from 'react-native'
-import sinonStubPromise from 'sinon-stub-promise'
 import Storage from './storage-util.native'
-
-sinonStubPromise(sinon)
 
 describe('Storage Utilities for react-native', () => {
 
   let sandbox
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create()
+    sandbox = sinon.createSandbox()
   })
 
   it('should return a promise to save', () => {
@@ -37,7 +34,7 @@ describe('Storage Utilities for react-native', () => {
   })
 
   it('should load from async storage', () => {
-    sandbox.stub(AsyncStorage, 'getItem').returnsPromise()
+    sandbox.stub(AsyncStorage, 'getItem').returns(Promise.resolve(''))
     Storage.load('name')
     chai.expect(AsyncStorage.getItem.calledOnce).to.be.true
     chai.expect(AsyncStorage.getItem.lastCall.args[0]).to.eql('name')
