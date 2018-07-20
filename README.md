@@ -14,8 +14,8 @@ npm install --save-dev bdux-timetravel
 
 ## Usage
 ```javascript
-import * as Timetravel from 'bdux-timetravel';
-import { applyMiddleware } from 'bdux';
+import * as Timetravel from 'bdux-timetravel'
+import { applyMiddleware } from 'bdux'
 
 applyMiddleware(
   Timetravel
@@ -23,8 +23,8 @@ applyMiddleware(
 ```
 Then place `<TimeTravel />` in root component to render a sidebar for time control.
 ```javascript
-import React from 'react';
-import { TimeTravel } from 'bdux-timetravel';
+import React from 'react'
+import { TimeTravel } from 'bdux-timetravel'
 
 const App = () => (
   <>
