@@ -19,7 +19,7 @@ import { applyMiddleware } from 'bdux';
 
 applyMiddleware(
   Timetravel
-);
+)
 ```
 Then place `<TimeTravel />` in root component to render a sidebar for time control.
 ```javascript
@@ -27,12 +27,12 @@ import React from 'react';
 import { TimeTravel } from 'bdux-timetravel';
 
 const App = () => (
-  <div>
+  <>
     <TimeTravel />
-  </div>
-);
+  </>
+)
 
-export default App;
+export default App
 ```
 
 ## Features
