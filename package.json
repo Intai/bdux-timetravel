@@ -28,8 +28,7 @@
   },
   "homepage": "https://github.com/Intai/bdux-timetravel",
   "dependencies": {
-    "ramda": "^0.26.1",
-    "react-addons-shallow-compare": "^15.6.2"
+    "ramda": "^0.26.1"
   },
   "devDependencies": {
     "@babel/core": "^7.4.0",
@@ -43,7 +42,7 @@
     "babel-eslint": "^10.0.1",
     "babel-plugin-istanbul": "^5.1.1",
     "baconjs": "^2.0.11",
-    "bdux": "^16.8.2",
+    "bdux": "^16.8.4",
     "chai": "^4.2.0",
     "coveralls": "^3.0.3",
     "cross-env": "^5.2.0",

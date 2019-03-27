@@ -2,7 +2,6 @@ import * as R from 'ramda'
 import React from 'react'
 import * as TimeTravelAction from '../actions/timetravel-action'
 import styles from './history-style'
-import { pureRender } from './decorators/pure-render'
 import { createComponent } from 'bdux'
 
 const onRevert = (dispatch, id) => () => {
@@ -68,8 +67,7 @@ export const HistoryItem = (props) => (
     && renderHistoryItem(props)
 )
 
-const HistoryItemDecorated = R.compose(
-  pureRender
+export default R.compose(
+  createComponent(),
+  React.memo
 )(HistoryItem)
-
-export default createComponent(HistoryItemDecorated)

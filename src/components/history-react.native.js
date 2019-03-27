@@ -4,7 +4,6 @@ import { TouchableOpacity, ListView, View, Text } from 'react-native'
 import * as TimeTravelAction from '../actions/timetravel-action'
 import TimeTravelStore from '../stores/timetravel-store'
 import styles from './history-style'
-import { pureRender } from './decorators/pure-render'
 import { scrollIntoView } from './decorators/scroll-into-view-react.native'
 import { createComponent } from 'bdux'
 
@@ -102,11 +101,10 @@ export const History = (props) => (
     && renderHistory(props)
 )
 
-const HistoryDecorated = R.compose(
-  pureRender,
+export default R.compose(
+  createComponent({
+    timetravel: TimeTravelStore
+  }),
+  React.memo,
   scrollIntoView
 )(History)
-
-export default createComponent(HistoryDecorated, {
-  timetravel: TimeTravelStore
-})

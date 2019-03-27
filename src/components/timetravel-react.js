@@ -6,7 +6,6 @@ import History from './history-react'
 import * as TimeTravelAction from '../actions/timetravel-action'
 import TimeTravelStore from '../stores/timetravel-store'
 import styles from './timetravel-style'
-import { pureRender } from './decorators/pure-render'
 import { createComponent } from 'bdux'
 
 const isDeclutch = R.path(
@@ -79,7 +78,7 @@ export const TimeTravel = (props) => (
 )
 
 export default R.pipe(
-  pureRender,
+  React.memo,
   createComponent({
     timetravel: TimeTravelStore
   })

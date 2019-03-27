@@ -3,7 +3,6 @@ import React from 'react'
 import TimeTravelStore from '../stores/timetravel-store'
 import HistoryItem from './history-item'
 import styles from './history-style'
-import { pureRender } from './decorators/pure-render'
 import { scrollIntoView } from './decorators/scroll-into-view-react'
 import { createComponent } from 'bdux'
 
@@ -51,11 +50,10 @@ export const History = (props) => (
     && renderHistory(props)
 )
 
-const HistoryDecorated = R.compose(
-  pureRender,
+export default R.compose(
+  createComponent({
+    timetravel: TimeTravelStore
+  }),
+  React.memo,
   scrollIntoView
 )(History)
-
-export default createComponent(HistoryDecorated, {
-  timetravel: TimeTravelStore
-})
