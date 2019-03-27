@@ -1,6 +1,5 @@
---require babel-core/register
---require babel-polyfill
---require ignore-styles
+--require @babel/register
+--require @babel/polyfill
 
 src/test.config.js
 src/**/*.spec.js

@@ -103,11 +103,6 @@ export const scrollIntoView = (Component = R.F) => (
     static defaultProps = {}
     state = {}
 
-    /* istanbul ignore next */
-    constructor(props) {
-      super(props)
-    }
-
     onLayout() {
       scrollToAnchor({
         wrap: this.wrap,

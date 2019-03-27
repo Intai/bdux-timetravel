@@ -21,7 +21,7 @@ describe('PureRender Decorator', () => {
   })
 
   it('should set the default component name', () => {
-    const Test = pureRender(R.F)
+    const Test = pureRender(() => false)
     chai.expect(Test.displayName).to.equal('Component')
   })
 

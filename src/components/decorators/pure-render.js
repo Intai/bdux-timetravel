@@ -19,11 +19,6 @@ export const pureRender = (Component = R.F) => (
     static defaultProps = {}
     state = {}
 
-    /* istanbul ignore next */
-    constructor(props) {
-      super(props)
-    }
-
     shouldComponentUpdate(nextProps, nextState) {
       return shallowCompare(this,
         replaceFunctions(nextProps, this.props),

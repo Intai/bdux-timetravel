@@ -1,5 +1,5 @@
 import * as R from 'ramda'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { resume } from '../../actions/timetravel-action'
 
 const getDisplayName = (Component) => (
@@ -10,11 +10,6 @@ export const decorateComponent = (Component = R.F) => (
   class extends React.Component {
     static displayName = getDisplayName(Component)
     static defaultProps = {}
-
-    /* istanbul ignore next */
-    constructor(props) {
-      super(props)
-    }
 
     componentDidMount() {
       if (this.props.dispatch) {
@@ -29,3 +24,16 @@ export const decorateComponent = (Component = R.F) => (
     }
   }
 )
+
+export const useHook = ({ dispatch }) => {
+  useEffect(
+    () => {
+      if (dispatch) {
+        dispatch(resume())
+      }
+    },
+    // only on mount and unmount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  )
+}

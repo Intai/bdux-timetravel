@@ -62,7 +62,7 @@ describe('ScrollIntoView Decorator', () => {
   })
 
   it('should set the default component name', () => {
-    const Test = scrollIntoView(R.F)
+    const Test = scrollIntoView(() => false)
     chai.expect(Test.displayName).to.equal('Component')
   })
 

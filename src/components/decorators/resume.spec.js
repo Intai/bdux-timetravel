@@ -6,7 +6,7 @@ import * as R from 'ramda'
 import React from 'react'
 import { JSDOM } from 'jsdom'
 import { shallow, mount } from 'enzyme'
-import { decorateComponent as resume } from './resume'
+import { decorateComponent as resume, useHook as useResumeHook } from './resume'
 import { resume as createResumeAction } from '../../actions/timetravel-action';
 
 describe('Resume Decorator', () => {
@@ -28,7 +28,7 @@ describe('Resume Decorator', () => {
   })
 
   it('should set the default component name', () => {
-    const Test = resume(R.F)
+    const Test = resume(() => false)
     chai.expect(Test.displayName).to.equal('Component')
   })
 
@@ -75,6 +75,26 @@ describe('Resume Decorator', () => {
       mount(<Test dispatch={callback} />)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.eql(createResumeAction())
+    })
+
+    it('should create a resume action using hook', () => {
+      const callback = sinon.stub()
+      const Test = (props) => {
+        useResumeHook(props)
+        return false
+      }
+      mount(<Test dispatch={callback} />)
+      chai.expect(callback.calledOnce).to.be.true
+      chai.expect(callback.lastCall.args[0]).to.eql(createResumeAction())
+    })
+
+    it('should render using resume hook without dispatch', () => {
+      const Test = (props) => {
+        useResumeHook(props)
+        return <span />
+      }
+      const wrapper = mount(<Test />)
+      chai.expect(wrapper.html()).to.equal('<span></span>')
     })
 
   })

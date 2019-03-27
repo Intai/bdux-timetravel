@@ -39,11 +39,8 @@ const hasNoAnchor = R.complement(
   R.find(R.prop('anchor'))
 )
 
-const setLastAnchor = R.converge(
-  R.adjust(R.flip(R.merge)({ anchor: true })), [
-    R.pipe(R.length, R.dec),
-    R.identity
-  ]
+const setLastAnchor = R.adjust(
+  -1, R.assoc('anchor', true)
 )
 
 const anchorLastRecord = R.when(
