@@ -6,17 +6,17 @@ import History from './history-react'
 import * as TimeTravelAction from '../actions/timetravel-action'
 import TimeTravelStore from '../stores/timetravel-store'
 import styles from './timetravel-style'
-import { createComponent } from 'bdux'
+import { createUseBdux } from 'bdux'
 
 const isDeclutch = R.path(
-  ['timetravel', 'declutch']
+  ['state', 'timetravel', 'declutch']
 )
 
 const shouldShowHistory = (timetravel) => (
   timetravel && timetravel.showHistory
 )
 
-const getContainerStyle = ({ timetravel }) => (
+const getContainerStyle = ({ state: { timetravel } }) => (
   R.mergeAll([
     styles.container,
     !shouldShowHistory(timetravel) && styles.hideHistory || {}
@@ -62,24 +62,26 @@ const getToggleHistoryText = (timetravel) => (
     : 'Show History'
 )
 
-const renderToggleHistory = ({ bindToDispatch, timetravel }) => (
+const renderToggleHistory = ({ bindToDispatch, state: { timetravel } }) => (
   <Button onClick={bindToDispatch(TimeTravelAction.toggleHistory)}>
     { getToggleHistoryText(timetravel) }
   </Button>
 )
 
-export const TimeTravel = (props) => (
-  <Container style={getContainerStyle(props)}>
-    {renderRestart(props)}
-    {renderClutch(props)}
-    {renderToggleHistory(props)}
-    <History />
-  </Container>
-)
+const useBdux = createUseBdux({
+  timetravel: TimeTravelStore
+})
 
-export default R.pipe(
-  React.memo,
-  createComponent({
-    timetravel: TimeTravelStore
-  })
-)(TimeTravel)
+export const TimeTravel = (props) => {
+  const bdux = useBdux(props)
+  return (
+    <Container style={getContainerStyle(bdux)}>
+      {renderRestart(bdux)}
+      {renderClutch(bdux)}
+      {renderToggleHistory(bdux)}
+      <History />
+    </Container>
+  )
+}
+
+export default React.memo(TimeTravel)
