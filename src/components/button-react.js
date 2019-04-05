@@ -1,8 +1,7 @@
 import * as R from 'ramda'
 import React from 'react'
-import Common from '../utils/common-util'
 import styles from './button-style'
-import { createComponent } from 'bdux'
+import { useBdux } from 'bdux'
 
 const mergeButtonStyle = R.pipe(
   R.defaultTo({}),
@@ -10,11 +9,14 @@ const mergeButtonStyle = R.pipe(
   R.merge(styles.button)
 )
 
-export const Button = ({ style, ...props }) => (
-  <button
-    { ...Common.removeReserved(props) }
-    style={ mergeButtonStyle(style) }
-  />
-)
+export const Button = (props) => {
+  useBdux(props)
+  return (
+    <button
+      {...props}
+      style={mergeButtonStyle(props.style)}
+    />
+  )
+}
 
-export default createComponent(Button)
+export default React.memo(Button)

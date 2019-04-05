@@ -1,5 +1,5 @@
 import * as R from 'ramda'
-import React from 'react'
+import React, { useCallback } from 'react'
 import Button from './button-react'
 import Container from './container-react'
 import History from './history-react'
@@ -9,40 +9,40 @@ import styles from './timetravel-style'
 import { createUseBdux } from 'bdux'
 
 const isDeclutch = R.path(
-  ['state', 'timetravel', 'declutch']
+  ['timetravel', 'declutch']
 )
 
 const shouldShowHistory = (timetravel) => (
   timetravel && timetravel.showHistory
 )
 
-const getContainerStyle = ({ state: { timetravel } }) => (
+const getContainerStyle = ({ timetravel }) => (
   R.mergeAll([
     styles.container,
     !shouldShowHistory(timetravel) && styles.hideHistory || {}
   ])
 )
 
-const renderRestart = ({ bindToDispatch }) => (
+const renderRestart = (restart) => (
   <Button
-    onClick={bindToDispatch(TimeTravelAction.restart)}
+    onClick={restart}
     style={styles.restart}
   >
     Restart
   </Button>
 )
 
-const renderClutchButton = ({ bindToDispatch }) => (
+const renderClutchButton = (state, clutch) => (
   <Button
-    onClick={bindToDispatch(TimeTravelAction.clutch)}
+    onClick={clutch}
     style={styles.clutch}
   >
     Clutch
   </Button>
 )
 
-const renderDeclutchButton = ({ bindToDispatch }) => (
-  <Button onClick={bindToDispatch(TimeTravelAction.declutch)}>
+const renderDeclutchButton = (state, clutch, declutch) => (
+  <Button onClick={declutch}>
     Declutch
   </Button>
 )
@@ -62,8 +62,8 @@ const getToggleHistoryText = (timetravel) => (
     : 'Show History'
 )
 
-const renderToggleHistory = ({ bindToDispatch, state: { timetravel } }) => (
-  <Button onClick={bindToDispatch(TimeTravelAction.toggleHistory)}>
+const renderToggleHistory = ({ timetravel }, toggleHistory) => (
+  <Button onClick={toggleHistory}>
     { getToggleHistoryText(timetravel) }
   </Button>
 )
@@ -73,12 +73,16 @@ const useBdux = createUseBdux({
 })
 
 export const TimeTravel = (props) => {
-  const bdux = useBdux(props)
+  const { bindToDispatch, state } = useBdux(props)
+  const restart = useCallback(bindToDispatch(TimeTravelAction.restart), [bindToDispatch])
+  const clutch = useCallback(bindToDispatch(TimeTravelAction.clutch), [bindToDispatch])
+  const declutch = useCallback(bindToDispatch(TimeTravelAction.declutch), [bindToDispatch])
+  const toggleHistory = useCallback(bindToDispatch(TimeTravelAction.toggleHistory), [bindToDispatch])
   return (
-    <Container style={getContainerStyle(bdux)}>
-      {renderRestart(bdux)}
-      {renderClutch(bdux)}
-      {renderToggleHistory(bdux)}
+    <Container style={getContainerStyle(state)}>
+      {renderRestart(restart)}
+      {renderClutch(state, clutch, declutch)}
+      {renderToggleHistory(state, toggleHistory)}
       <History />
     </Container>
   )

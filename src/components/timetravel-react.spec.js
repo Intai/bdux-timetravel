@@ -48,18 +48,18 @@ describe('TimeTravel Component', () => {
 
   it('should render three buttons', () => {
     const wrapper = shallow(<TimeTravel />)
-    chai.expect(wrapper.find('Button')).to.have.length(3)
+    chai.expect(wrapper.find(Button)).to.have.length(3)
   })
 
   it('should render the first button to restart', () => {
     const wrapper = shallow(<TimeTravel />)
-    const button = wrapper.find('Button').first()
+    const button = wrapper.find(Button).first()
     chai.expect(button.prop('children')).to.equal('Restart')
   })
 
   it('should render the second button to declutch', () => {
     const wrapper = shallow(<TimeTravel />)
-    const button = wrapper.find('Button').at(1)
+    const button = wrapper.find(Button).at(1)
     chai.expect(button.prop('children')).to.equal('Declutch')
   })
 
@@ -67,13 +67,13 @@ describe('TimeTravel Component', () => {
     sandbox.stub(TimeTravelStore, 'getProperty')
       .returns(Bacon.constant({ declutch: true }))
     const wrapper = shallow(<TimeTravel />)
-    const button = wrapper.find('Button').at(1)
+    const button = wrapper.find(Button).at(1)
     chai.expect(button.prop('children')).to.equal('Clutch')
   })
 
   it('should render the third button to show history', () => {
     const wrapper = shallow(<TimeTravel />)
-    const button = wrapper.find('Button').at(2)
+    const button = wrapper.find(Button).at(2)
     chai.expect(button.prop('children')).to.equal('Show History')
   })
 
@@ -81,7 +81,7 @@ describe('TimeTravel Component', () => {
     sandbox.stub(TimeTravelStore, 'getProperty')
       .returns(Bacon.constant({ showHistory: true }))
     const wrapper = shallow(<TimeTravel />)
-    const button = wrapper.find('Button').at(2)
+    const button = wrapper.find(Button).at(2)
     chai.expect(button.prop('children')).to.equal('Hide History')
   })
 
@@ -116,7 +116,7 @@ describe('TimeTravel Component', () => {
           </BduxContext.Provider>
         </div>
       )
-      const button = wrapper.find(Button).first()
+      const button = wrapper.find('Button').first()
       chai.expect(button.prop('onClick')).to.equal(TimeTravelAction.restart)
     })
 
@@ -128,7 +128,7 @@ describe('TimeTravel Component', () => {
           </BduxContext.Provider>
         </div>
       )
-      const button = wrapper.find(Button).at(1)
+      const button = wrapper.find('Button').at(1)
       chai.expect(button.prop('onClick')).to.equal(TimeTravelAction.declutch)
     })
 
@@ -142,7 +142,7 @@ describe('TimeTravel Component', () => {
           </BduxContext.Provider>
         </div>
       )
-      const button = wrapper.find(Button).at(1)
+      const button = wrapper.find('Button').at(1)
       chai.expect(button.prop('onClick')).to.equal(TimeTravelAction.clutch)
     })
 
@@ -154,7 +154,7 @@ describe('TimeTravel Component', () => {
           </BduxContext.Provider>
         </div>
       )
-      const button = wrapper.find(Button).at(2)
+      const button = wrapper.find('Button').at(2)
       chai.expect(button.prop('onClick')).to.equal(TimeTravelAction.toggleHistory)
     })
 
@@ -168,7 +168,7 @@ describe('TimeTravel Component', () => {
           </BduxContext.Provider>
         </div>
       )
-      const button = wrapper.find(Button).at(2)
+      const button = wrapper.find('Button').at(2)
       chai.expect(button.prop('onClick')).to.equal(TimeTravelAction.toggleHistory)
     })
 
