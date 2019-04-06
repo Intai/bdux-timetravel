@@ -11,6 +11,7 @@ import { createDispatcher, BduxContext } from 'bdux'
 import * as TimeTravelAction from '../actions/timetravel-action'
 import TimeTravelStore from '../stores/timetravel-store'
 import { TimeTravel } from './timetravel-react'
+import Container from './container-react'
 import Button from './button-react'
 import styles from './timetravel-style'
 
@@ -24,7 +25,7 @@ describe('TimeTravel Component', () => {
 
   it('should wrap inside a container', () => {
     const wrapper = shallow(<TimeTravel />)
-    chai.expect(wrapper.name()).to.equal('Container')
+    chai.expect(wrapper.type()).to.equal(Container)
   })
 
   it('should limit height to hide history', () => {

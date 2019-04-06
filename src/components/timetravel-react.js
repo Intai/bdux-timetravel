@@ -1,5 +1,5 @@
 import * as R from 'ramda'
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import Button from './button-react'
 import Container from './container-react'
 import History from './history-react'
@@ -78,14 +78,18 @@ export const TimeTravel = (props) => {
   const clutch = useCallback(bindToDispatch(TimeTravelAction.clutch), [bindToDispatch])
   const declutch = useCallback(bindToDispatch(TimeTravelAction.declutch), [bindToDispatch])
   const toggleHistory = useCallback(bindToDispatch(TimeTravelAction.toggleHistory), [bindToDispatch])
-  return (
-    <Container style={getContainerStyle(state)}>
+  const containerProps = useMemo(() => ({
+    style: getContainerStyle(state),
+    children: <>
       {renderRestart(restart)}
       {renderClutch(state, clutch, declutch)}
       {renderToggleHistory(state, toggleHistory)}
       <History />
-    </Container>
-  )
+    </>
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [bindToDispatch, state.timetravel])
+
+  return <Container {...containerProps} />
 }
 
 export default React.memo(TimeTravel)

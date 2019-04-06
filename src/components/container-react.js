@@ -1,9 +1,9 @@
 import React from 'react'
-import Common from '../utils/common-util'
-import { createComponent } from 'bdux'
+import { useBdux } from 'bdux'
 
-export const Container = (props) => (
-  <div { ...Common.removeReserved(props) } />
-)
+export const Container = (props) => {
+  useBdux(props)
+  return <div {...props} />
+}
 
-export default createComponent(Container)
+export default React.memo(Container)
