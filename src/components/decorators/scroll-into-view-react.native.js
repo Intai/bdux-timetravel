@@ -1,11 +1,7 @@
 import * as R from 'ramda'
-import React from 'react'
+import React, { useMemo } from 'react'
 import ReactNative from 'react-native'
 import { calcScrollTop }  from './scroll-into-view-react.js'
-
-const getDisplayName = (Component) => (
-  Component.displayName || Component.name || 'Component'
-)
 
 const hasListAnchor = R.both(
   R.prop('list'),
@@ -97,29 +93,23 @@ const scrollToAnchor = R.when(
   scrollToDiffAnchor
 )
 
-export const scrollIntoView = (Component = R.F) => (
-  class extends React.Component {
-    static displayName = getDisplayName(Component)
-    static defaultProps = {}
-    state = {}
+export const useScrollIntoView = () => {
+  return useMemo(() => {
+    const refWrap = React.createRef()
+    const refList = React.createRef()
+    const refAnchor = React.createRef()
 
-    onLayout() {
-      scrollToAnchor({
-        wrap: this.wrap,
-        list: this.list,
-        anchor: this.anchor
-      })
-    }
-
-    render() {
-      return React.createElement(
-        Component, R.merge(this.props, {
-          refWrap: node => this.wrap = node,
-          refList: node => this.list = node,
-          refAnchor: node => this.anchor = node,
-          onLayout: R.bind(this.onLayout, this)
+    return {
+      refWrap,
+      refList,
+      refAnchor,
+      handleLayout: () => {
+        scrollToAnchor({
+          wrap: refWrap.current,
+          list: refList.current,
+          anchor: refAnchor.current,
         })
-      )
+      },
     }
-  }
-)
+  }, [])
+}

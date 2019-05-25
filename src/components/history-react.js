@@ -1,20 +1,14 @@
 import * as R from 'ramda'
-import React from 'react'
+import React, { useMemo } from 'react'
 import TimeTravelStore from '../stores/timetravel-store'
 import HistoryItem from './history-item'
 import styles from './history-style'
-import { scrollIntoView } from './decorators/scroll-into-view-react'
-import { createComponent } from 'bdux'
+import { useScrollIntoView } from './decorators/scroll-into-view-react'
+import { createUseBdux } from 'bdux'
 
-const hasHistory = R.pipe(
-  R.path(['timetravel', 'history']),
-  R.is(Array)
-)
-
-const cleanRef = R.ifElse(
-  R.is(Function),
-  R.identity,
-  R.always(undefined)
+const hasHistory = R.pathSatisfies(
+  R.is(Array),
+  ['timetravel', 'history']
 )
 
 const renderRecord = R.curry((refAnchor, record) => (
@@ -36,24 +30,28 @@ const getListStyle = (timetravel) => (
   ])
 )
 
-const renderHistory = ({ timetravel, refList, refAnchor }) => (
+const renderHistory = ({ timetravel }, refList, refAnchor) => (
   <ul
-    ref={cleanRef(refList)}
+    ref={refList}
     style={getListStyle(timetravel)}
   >
     {renderRecords(refAnchor, timetravel)}
   </ul>
 )
 
-export const History = (props) => (
-  hasHistory(props)
-    && renderHistory(props)
-)
+const useBdux = createUseBdux({
+  timetravel: TimeTravelStore
+})
 
-export default R.compose(
-  createComponent({
-    timetravel: TimeTravelStore
-  }),
-  React.memo,
-  scrollIntoView
-)(History)
+export const History = (props) => {
+  const { state } = useBdux(props)
+  const { refList, refAnchor } = useScrollIntoView()
+
+  return useMemo(() => (
+    hasHistory(state)
+      && renderHistory(state, refList, refAnchor)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ), [state.timetravel, refList, refAnchor])
+}
+
+export default History

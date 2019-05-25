@@ -13,6 +13,7 @@ import TimeTravelStore from '../stores/timetravel-store'
 import { TimeTravel } from './timetravel-react'
 import Container from './container-react'
 import Button from './button-react'
+import History from './history-react'
 import styles from './timetravel-style'
 
 describe('TimeTravel Component', () => {
@@ -88,7 +89,7 @@ describe('TimeTravel Component', () => {
 
   it('should render history', () => {
     const wrapper = shallow(<TimeTravel />)
-    chai.expect(wrapper.find('History')).to.have.length(1)
+    chai.expect(wrapper.find(History)).to.have.length(1)
   })
 
   describe('with jsdom', () => {

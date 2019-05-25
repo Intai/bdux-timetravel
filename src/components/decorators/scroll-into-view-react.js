@@ -1,9 +1,5 @@
 import * as R from 'ramda'
-import React from 'react'
-
-const getDisplayName = (Component) => (
-  Component.displayName || Component.name || 'Component'
-)
+import React, { useEffect, useMemo } from 'react'
 
 const isAnchorOverTop = ({ scrollTop, anchorTop }) => (
   anchorTop < scrollTop
@@ -111,26 +107,18 @@ const scrollToAnchor = R.when(
   scrollToDiffAnchor
 )
 
-export const scrollIntoView = (Component = R.F) => (
-  class extends React.Component {
-    static displayName = getDisplayName(Component)
-    static defaultProps = {}
-    state = {}
+export const useScrollIntoView = () => {
+  const refs = useMemo(() => ({
+    refList: React.createRef(),
+    refAnchor: React.createRef(),
+  }), [])
 
-    componentDidUpdate() {
-      scrollToAnchor({
-        list: this.list,
-        anchor: this.anchor
-      })
-    }
+  useEffect(() => {
+    scrollToAnchor({
+      list: refs.refList.current,
+      anchor: refs.refAnchor.current
+    })
+  })
 
-    render() {
-      return React.createElement(
-        Component, R.merge(this.props, {
-          refList: node => this.list = node,
-          refAnchor: node => this.anchor = node
-        })
-      )
-    }
-  }
-)
+  return refs
+}

@@ -1,15 +1,15 @@
 import * as R from 'ramda'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { TouchableOpacity, ListView, View, Text } from 'react-native'
 import * as TimeTravelAction from '../actions/timetravel-action'
 import TimeTravelStore from '../stores/timetravel-store'
 import styles from './history-style'
-import { scrollIntoView } from './decorators/scroll-into-view-react.native'
-import { createComponent } from 'bdux'
+import { useScrollIntoView } from './decorators/scroll-into-view-react.native'
+import { createUseBdux } from 'bdux'
 
-const hasHistory = R.pipe(
-  R.path(['timetravel', 'history']),
-  R.is(Array)
+const hasHistory = R.pathSatisfies(
+  R.is(Array),
+  ['timetravel', 'history']
 )
 
 const onRevert = (dispatch, id) => () => {
@@ -42,13 +42,12 @@ const renderParams = R.pipe(
 )
 
 const getListItemStyle = (record) => (
-  R.mergeAll([
-    record.anchor && styles.anchor || {}
-  ])
+  record.anchor && styles.anchor || {}
 )
 
-const renderRecord = R.curry(({ dispatch, refAnchor }, record) => (
-  <View ref={record.anchor && refAnchor}
+const renderRecord = R.curry((dispatch, refAnchor, record) => (
+  <View
+    ref={record.anchor ? refAnchor : undefined}
     style={getListItemStyle(record)}
   >
     <TouchableOpacity onPress={onRevert(dispatch, record.id)}>
@@ -58,7 +57,6 @@ const renderRecord = R.curry(({ dispatch, refAnchor }, record) => (
         </Text>
       </View>
     </TouchableOpacity>
-
     <View style={styles.actionParams}>
       {renderParams(record.action)}
     </View>
@@ -79,32 +77,36 @@ const createHistoryDataSource = (() => {
   )
 })()
 
-const renderHistory = ({ timetravel, refWrap, refList, ...props }) => (
+const renderHistory = (dispatch, { timetravel }, { refWrap, refList, refAnchor, handleLayout }) => (
   <View
     collapsable={false}
     ref={refWrap}
     style={styles.wrap}
   >
     <ListView
-      {...props}
       dataSource={createHistoryDataSource(timetravel)}
       enableEmptySections
+      onLayout={handleLayout}
       ref={refList}
-      renderRow={renderRecord(props)}
+      renderRow={renderRecord(dispatch, refAnchor)}
       style={styles.list}
     />
   </View>
 )
 
-export const History = (props) => (
-  hasHistory(props)
-    && renderHistory(props)
-)
+const useBdux = createUseBdux({
+  timetravel: TimeTravelStore
+})
 
-export default R.compose(
-  createComponent({
-    timetravel: TimeTravelStore
-  }),
-  React.memo,
-  scrollIntoView
-)(History)
+export const History = (props) => {
+  const { dispatch, state } = useBdux(props)
+  const scrollIntoView = useScrollIntoView()
+
+  return useMemo(() => (
+    hasHistory(state)
+      && renderHistory(dispatch, state, scrollIntoView)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ), [dispatch, state.timetravel, scrollIntoView])
+}
+
+export default History

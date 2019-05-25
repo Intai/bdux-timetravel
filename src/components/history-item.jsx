@@ -31,12 +31,6 @@ const renderParams = R.pipe(
   R.values
 )
 
-const cleanRef = R.ifElse(
-  R.is(Function),
-  R.identity,
-  R.always(undefined)
-)
-
 const getListItemStyle = (record) => (
   R.mergeAll([
     styles.item,
@@ -46,7 +40,7 @@ const getListItemStyle = (record) => (
 
 const renderHistoryItem = ({ dispatch, record, refAnchor }) => (
   <li
-    ref={cleanRef(record.anchor && refAnchor)}
+    ref={record.anchor ? refAnchor : undefined}
     style={getListItemStyle(record)}
   >
     <div
