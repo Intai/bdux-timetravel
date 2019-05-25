@@ -2,7 +2,7 @@ import * as R from 'ramda'
 import React from 'react'
 import { TouchableOpacity, View, Text } from 'react-native'
 import styles from './button-style'
-import { createComponent } from 'bdux'
+import { useBdux } from 'bdux'
 
 const mergeTextStyle = R.pipe(
   R.defaultTo({}),
@@ -10,14 +10,18 @@ const mergeTextStyle = R.pipe(
   R.merge(styles.text)
 )
 
-export const Button = ({ onClick, style, children }) => (
-  <TouchableOpacity onPress={ onClick }>
-    <View style={ styles.wrap }>
-      <Text style={ mergeTextStyle(style) }>
-        { children }
-      </Text>
-    </View>
-  </TouchableOpacity>
-)
+export const Button = (props) => {
+  useBdux(props)
+  const { style, children, onClick } = props
+  return (
+    <TouchableOpacity onPress={onClick}>
+      <View style={styles.wrap}>
+        <Text style={mergeTextStyle(style)}>
+          {children}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  )
+}
 
-export default createComponent(Button)
+export default React.memo(Button)

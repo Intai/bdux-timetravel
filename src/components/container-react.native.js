@@ -1,9 +1,10 @@
 import React from 'react'
 import { View } from 'react-native'
-import { createComponent } from 'bdux'
+import { useBdux } from 'bdux'
 
-export const Container = (props) => (
-  <View { ...props } />
-)
+export const Container = (props) => {
+  useBdux(props)
+  return <View { ...props } />
+}
 
-export default createComponent(Container)
+export default React.memo(Container)
