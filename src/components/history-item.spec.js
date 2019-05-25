@@ -2,10 +2,11 @@
 
 import chai from 'chai'
 import sinon from 'sinon'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { JSDOM } from 'jsdom'
 import { shallow, mount } from 'enzyme'
-import { HistoryItem } from './history-item'
+import { applyMiddleware, clearMiddlewares } from 'bdux'
+import HistoryItemWithMemo, { HistoryItem } from './history-item'
 import styles from './history-style'
 import * as TimeTravelAction from '../actions/timetravel-action'
 
@@ -30,7 +31,7 @@ describe('HistoryItem Component', () => {
       }
     }
 
-    const wrapper = shallow(HistoryItem(props))
+    const wrapper = shallow(<HistoryItem {...props} />)
     chai.expect(wrapper.type()).to.equal('li')
   })
 
@@ -43,7 +44,7 @@ describe('HistoryItem Component', () => {
       }
     }
 
-    const wrapper = shallow(HistoryItem(props))
+    const wrapper = shallow(<HistoryItem {...props} />)
     chai.expect(wrapper.prop('style')).to.include(styles.anchor)
   })
 
@@ -57,7 +58,7 @@ describe('HistoryItem Component', () => {
       }
     }
 
-    const wrapper = shallow(HistoryItem(props))
+    const wrapper = shallow(<HistoryItem {...props} />)
     chai.expect(wrapper.text()).to.equal('TYPE')
   })
 
@@ -71,7 +72,7 @@ describe('HistoryItem Component', () => {
       }
     }
 
-    const wrapper = shallow(HistoryItem(props))
+    const wrapper = shallow(<HistoryItem {...props} />)
     const params = wrapper.find('ul')
     chai.expect(params.children()).to.have.length(1)
     chai.expect(params.childAt(0).key()).to.equal('param')
@@ -90,7 +91,7 @@ describe('HistoryItem Component', () => {
       }
     }
 
-    const wrapper = shallow(HistoryItem(props))
+    const wrapper = shallow(<HistoryItem {...props} />)
     const params = wrapper.find('ul')
     chai.expect(params.children()).to.have.length(1)
     chai.expect(params.childAt(0).key()).to.equal('nested')
@@ -99,11 +100,18 @@ describe('HistoryItem Component', () => {
 
   describe('with jsdom', () => {
 
+    let useHook
+
     beforeEach(() => {
       const dom = new JSDOM('<html></html>')
       global.window = dom.window
       global.document = dom.window.document
       global.Element = dom.window.Element
+
+      useHook = sinon.stub()
+      applyMiddleware({
+        useHook
+      })
     })
 
     it('should reference anchor item for scroll-into-view', () => {
@@ -145,10 +153,58 @@ describe('HistoryItem Component', () => {
         }
       }
 
-      const wrapper = mount(HistoryItem(props))
+      const wrapper = mount(<HistoryItem {...props} />)
       wrapper.find('div').first().simulate('click')
       chai.expect(TimeTravelAction.revert.calledOnce).to.be.true
       chai.expect(TimeTravelAction.revert.lastCall.args[0]).to.equal(1)
+    })
+
+    it('should not render with the same record', () => {
+      const record = {
+        id: 1,
+        action: {}
+      }
+
+      const wrapper = mount(<HistoryItemWithMemo record={record} />)
+      wrapper.setProps({ record })
+      chai.expect(useHook.callCount).to.equal(1)
+    })
+
+    it('should render with a new record', () => {
+      const record = {
+        id: 1,
+        action: {}
+      }
+
+      const wrapper = mount(<HistoryItemWithMemo />)
+      wrapper.setProps({ record })
+      chai.expect(useHook.callCount).to.equal(2)
+    })
+
+    it('should not render with the same ref', () => {
+      const Test = () => {
+        const refAnchor = useMemo(React.createRef, [])
+        return <HistoryItemWithMemo refAnchor={refAnchor} />
+      }
+
+      const wrapper = mount(<Test />)
+      wrapper.setProps({})
+      chai.expect(useHook.callCount).to.equal(1)
+    })
+
+    it('should render with a new ref', () => {
+      const Test = () => {
+        const refAnchor = React.createRef()
+        return <HistoryItemWithMemo refAnchor={refAnchor} />
+      }
+
+      const wrapper = mount(<Test />)
+      wrapper.setProps({})
+      chai.expect(useHook.callCount).to.equal(2)
+    })
+
+    afterEach(() => {
+      clearMiddlewares()
     })
 
   })

@@ -2,7 +2,7 @@ import * as R from 'ramda'
 import React from 'react'
 import * as TimeTravelAction from '../actions/timetravel-action'
 import styles from './history-style'
-import { createComponent } from 'bdux'
+import { useBdux } from 'bdux'
 
 const onRevert = (dispatch, id) => () => {
   dispatch(TimeTravelAction.revert(id))
@@ -56,12 +56,10 @@ const renderHistoryItem = ({ dispatch, record, refAnchor }) => (
   </li>
 )
 
-export const HistoryItem = (props) => (
-  R.propIs(Object, 'record', props)
+export const HistoryItem = (props) => {
+  useBdux(props)
+  return R.propIs(Object, 'record', props)
     && renderHistoryItem(props)
-)
+}
 
-export default R.compose(
-  createComponent(),
-  React.memo
-)(HistoryItem)
+export default React.memo(HistoryItem)
