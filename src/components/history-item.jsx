@@ -38,7 +38,7 @@ const getListItemStyle = (record) => (
   ])
 )
 
-const renderHistoryItem = ({ dispatch, record, refAnchor }) => (
+const renderHistoryItem = (dispatch, { record, refAnchor }) => (
   <li
     ref={record.anchor ? refAnchor : undefined}
     style={getListItemStyle(record)}
@@ -57,9 +57,9 @@ const renderHistoryItem = ({ dispatch, record, refAnchor }) => (
 )
 
 export const HistoryItem = (props) => {
-  useBdux(props)
+  const { dispatch } = useBdux(props)
   return R.propIs(Object, 'record', props)
-    && renderHistoryItem(props)
+    && renderHistoryItem(dispatch, props)
 }
 
 export default React.memo(HistoryItem)

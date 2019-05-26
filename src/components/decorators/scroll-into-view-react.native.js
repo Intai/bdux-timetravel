@@ -1,7 +1,7 @@
 import * as R from 'ramda'
 import React, { useMemo } from 'react'
 import ReactNative from 'react-native'
-import { calcScrollTop }  from './scroll-into-view-react.js'
+import { calcScrollTop, isDiffAnchor }  from './scroll-into-view-react.js'
 
 const hasListAnchor = R.both(
   R.prop('list'),
@@ -59,16 +59,6 @@ const getAnchorDimension = ({ list, anchor, listHeight }) => (
 const hasListHeight = R.propSatisfies(
   R.lt(0), 'listHeight'
 )
-
-const isDiffAnchor = (() => {
-  let prev = 0
-
-  return ({ anchor }) => (
-    (prev !== anchor)
-      ? prev = anchor
-      : false
-  )
-})()
 
 const scrollListTo = R.converge(
   scrollTo, [

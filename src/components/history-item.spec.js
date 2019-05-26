@@ -146,7 +146,6 @@ describe('HistoryItem Component', () => {
     it('should revert on click', () => {
       sandbox.stub(TimeTravelAction, 'revert')
       const props = {
-        dispatch: sinon.stub(),
         record: {
           id: 1,
           action: {}
