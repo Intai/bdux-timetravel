@@ -84,7 +84,7 @@ const getScrollTop = ({ list, anchor }) => ({
   })
 })
 
-export const isDiffAnchor = (() => {
+const isDiffAnchor = (() => {
   let prev = 0
   return ({ anchor }) => (
     (prev !== anchor)

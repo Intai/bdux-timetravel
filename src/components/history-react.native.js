@@ -1,6 +1,6 @@
 import * as R from 'ramda'
-import React, { useMemo } from 'react'
-import { TouchableOpacity, ListView, View, Text } from 'react-native'
+import React, { useEffect, useMemo } from 'react'
+import { TouchableOpacity, FlatList, View, Text } from 'react-native'
 import * as TimeTravelAction from '../actions/timetravel-action'
 import TimeTravelStore from '../stores/timetravel-store'
 import styles from './history-style'
@@ -42,14 +42,24 @@ const renderParams = R.pipe(
 )
 
 const getListItemStyle = (record) => (
-  record.anchor && styles.anchor || {}
+  R.mergeAll([
+    styles.item,
+    record.anchor && styles.anchor,
+  ])
 )
 
-const renderRecord = R.curry((dispatch, refAnchor, record) => (
-  <View
-    ref={record.anchor ? refAnchor : undefined}
-    style={getListItemStyle(record)}
-  >
+const keyExtractor = (record) => (
+  record.id.toString()
+)
+
+const getItemLayout = (data, index) => ({
+  length: styles.item.height,
+  offset: styles.item.height * index,
+  index,
+})
+
+const renderRecord = R.curry((dispatch, refAnchor, { item: record }) => (
+  <View style={getListItemStyle(record)}>
     <TouchableOpacity onPress={onRevert(dispatch, record.id)}>
       <View style={styles.actionTypeWrap}>
         <Text style={styles.actionType}>
@@ -63,36 +73,42 @@ const renderRecord = R.curry((dispatch, refAnchor, record) => (
   </View>
 ))
 
-const updateHistoryDataSource = (dataSource, timetravel) => (
-  dataSource.cloneWithRows(timetravel.history,
-    R.reverse(R.range(0, timetravel.history.length)))
+const isLastAnchor = ({ anchor, isLast }) => (
+  anchor && isLast
 )
 
-const createHistoryDataSource = (() => {
-  let dataSource = new ListView.DataSource({
-    rowHasChanged: R.complement(isEqualRecord) })
+const setScrollAnchor = (history, refAnchor) => {
+  const index = R.findIndex(isLastAnchor, history)
+  const recordId = (index >= 0)
+    ? R.nth(index, history).id
+    : undefined
 
-  return (timetravel) => (
-    dataSource = updateHistoryDataSource(dataSource, timetravel)
+  refAnchor.current = {
+    getIndex: R.always(index),
+    getId: R.always(recordId),
+  }
+}
+
+const renderHistory = (dispatch, { timetravel }, { refList, refAnchor }) => {
+  const history = R.reverse(timetravel.history)
+  setScrollAnchor(history, refAnchor)
+
+  return (
+    <View
+      collapsable={false}
+      style={styles.wrap}
+    >
+      <FlatList
+        data={history}
+        getItemLayout={getItemLayout}
+        keyExtractor={keyExtractor}
+        renderItem={renderRecord(dispatch, refAnchor)}
+        ref={refList}
+        style={styles.list}
+      />
+    </View>
   )
-})()
-
-const renderHistory = (dispatch, { timetravel }, { refWrap, refList, refAnchor, handleLayout }) => (
-  <View
-    collapsable={false}
-    ref={refWrap}
-    style={styles.wrap}
-  >
-    <ListView
-      dataSource={createHistoryDataSource(timetravel)}
-      enableEmptySections
-      onLayout={handleLayout}
-      ref={refList}
-      renderRow={renderRecord(dispatch, refAnchor)}
-      style={styles.list}
-    />
-  </View>
-)
+}
 
 const useBdux = createUseBdux({
   timetravel: TimeTravelStore
@@ -101,6 +117,7 @@ const useBdux = createUseBdux({
 export const History = (props) => {
   const { dispatch, state } = useBdux(props)
   const scrollIntoView = useScrollIntoView()
+  useEffect(scrollIntoView.handleUpdate)
 
   return useMemo(() => (
     hasHistory(state)

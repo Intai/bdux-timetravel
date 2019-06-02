@@ -6,11 +6,15 @@ export default {
     overflow: 'hidden',
     flexDirection: 'column'
   },
+  item: {
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    height: 125
+  },
   anchor: {
     backgroundColor: 'lightcyan'
   },
   actionTypeWrap: {
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.1)',
     paddingTop: 10,
     paddingRight: 20,
     paddingBottom: 10,
@@ -23,7 +27,6 @@ export default {
     fontWeight: 'bold'
   },
   actionParams: {
-    backgroundColor: 'rgba(0,0,0,0.1)',
     margin: 0,
     paddingTop: 10,
     paddingRight: 20,

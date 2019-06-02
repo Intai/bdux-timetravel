@@ -1,101 +1,62 @@
 import * as R from 'ramda'
 import React, { useMemo } from 'react'
-import ReactNative from 'react-native'
-import { calcScrollTop, isDiffAnchor }  from './scroll-into-view-react.js'
 
-const hasListAnchor = R.both(
-  R.prop('list'),
-  R.prop('anchor')
+const getAnchorIndex = ({ list, anchor }) => ({
+  list,
+  anchor,
+  anchorIndex: (anchor && anchor.getIndex)
+    ? anchor.getIndex()
+    : -1
+})
+
+const hasListAnchor = ({ list, anchorIndex }) => (
+  list && anchorIndex >= 0
 )
 
-const scrollTo = (list, scrollTop) => {
-  if (scrollTop >= 0) {
-    list.scrollTo({
-      x: 0,
-      y: scrollTop,
-      animated: false
-    })
+const isDiffAnchorId = (() => {
+  let prev = 0
+  return ({ anchor }) => {
+    const id = anchor.getId()
+    if (prev !== id) {
+      prev = id
+      return true
+    }
+    return false
   }
+})()
+
+const scrollToIndex = ({ list, anchorIndex }) => {
+  list.scrollToIndex({
+    index: anchorIndex,
+    viewOffset: 0,
+    viewPosition: 0,
+    animated: false
+  })
 }
 
-const getListHeight = ({ wrap, list, anchor }) => (
-  new Promise((resolve) => {
-    wrap.measure(
-      (x, y, width, height) => {
-        resolve({
-          list,
-          anchor,
-          listHeight: height
-        })
-      }
-    )
-  })
+const scrollToDiffAnchor = R.when(
+  isDiffAnchorId,
+  scrollToIndex,
 )
 
-const findNodeHandle = (...args) => (
-  (ReactNative.findNodeHandle)
-    ? ReactNative.findNodeHandle(...args)
-    : false
-)
-
-const getAnchorDimension = ({ list, anchor, listHeight }) => (
-  new Promise((resolve) => {
-    anchor.measureLayout(
-      findNodeHandle(list),
-      (x, y, width, height) => {
-        resolve({
-          list,
-          listHeight,
-          anchorTop: y,
-          anchorHeight: height,
-          scrollTop: list.scrollProperties.offset,
-          scrollHeight: list.scrollProperties.contentLength
-        })
-      }
-    )
-  })
-)
-
-const hasListHeight = R.propSatisfies(
-  R.lt(0), 'listHeight'
-)
-
-const scrollListTo = R.converge(
-  scrollTo, [
-    R.prop('list'),
-    calcScrollTop
-  ]
-)
-
-const scrollToDiffAnchor = R.pipeP(
-  getListHeight,
+const scrollToAnchor = R.pipe(
+  getAnchorIndex,
   R.when(
-    R.both(hasListHeight, isDiffAnchor),
-    R.pipeP(
-      getAnchorDimension,
-      scrollListTo
-    )
+    hasListAnchor,
+    scrollToDiffAnchor
   )
-)
-
-const scrollToAnchor = R.when(
-  hasListAnchor,
-  scrollToDiffAnchor
 )
 
 export const useScrollIntoView = () => {
   return useMemo(() => {
-    const refWrap = React.createRef()
     const refList = React.createRef()
     const refAnchor = React.createRef()
 
     return {
-      refWrap,
       refList,
       refAnchor,
-      handleLayout: () => {
+      handleUpdate: () => {
         scrollToAnchor({
-          wrap: refWrap.current,
           list: refList.current,
           anchor: refAnchor.current,
         })

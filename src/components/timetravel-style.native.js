@@ -2,7 +2,7 @@ export default {
   container: {
     position: 'absolute',
     right: 2,
-    top: 2,
+    top: 47,
     bottom: 0,
     overflow: 'hidden',
     flexDirection: 'column',

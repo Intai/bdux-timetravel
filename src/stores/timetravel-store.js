@@ -40,7 +40,10 @@ const hasNoAnchor = R.complement(
 )
 
 const setLastAnchor = R.adjust(
-  -1, R.assoc('anchor', true)
+  -1, R.flip(R.merge)({
+    anchor: true,
+    isLast: true,
+  })
 )
 
 const anchorLastRecord = R.when(

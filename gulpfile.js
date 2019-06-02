@@ -36,7 +36,6 @@ function test(cb) {
   cmd.on('close', cb);
 }
 
-
 function lint() {
   return gulp.src(srcFiles)
     .pipe(gulpEslint())
