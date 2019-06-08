@@ -1,6 +1,6 @@
 import * as R from 'ramda'
-import React, { useEffect, useMemo } from 'react'
-import { TouchableOpacity, FlatList, View, Text } from 'react-native'
+import React, { useState, useEffect, useMemo } from 'react'
+import { TouchableOpacity, TouchableWithoutFeedback, FlatList, View, Text } from 'react-native'
 import * as TimeTravelAction from '../actions/timetravel-action'
 import TimeTravelStore from '../stores/timetravel-store'
 import styles from './history-style'
@@ -12,8 +12,12 @@ const hasHistory = R.pathSatisfies(
   ['timetravel', 'history']
 )
 
-const onRevert = (dispatch, id) => () => {
+const handleRevert = ({ dispatch }, id) => () => {
   dispatch(TimeTravelAction.revert(id))
+}
+
+const handleExpand = ({ expandId, setExpandId }, id) => () => {
+  setExpandId((expandId === id) ? null : id)
 }
 
 const formatValue = (value) => (
@@ -41,10 +45,11 @@ const renderParams = R.pipe(
   R.values
 )
 
-const getListItemStyle = (record) => (
+const getListItemStyle = ({ expandId }, record) => (
   R.mergeAll([
     styles.item,
     record.anchor && styles.anchor,
+    record.id === expandId && styles.expand,
   ])
 )
 
@@ -58,18 +63,23 @@ const getItemLayout = (data, index) => ({
   index,
 })
 
-const renderRecord = R.curry((dispatch, refAnchor, { item: record }) => (
-  <View style={getListItemStyle(record)}>
-    <TouchableOpacity onPress={onRevert(dispatch, record.id)}>
+const renderRecord = R.curry((args, { item: record }) => (
+  <View
+    key={keyExtractor(record)}
+    style={getListItemStyle(args, record)}
+  >
+    <TouchableOpacity onPress={handleRevert(args, record.id)}>
       <View style={styles.actionTypeWrap}>
         <Text style={styles.actionType}>
           {record.action.type}
         </Text>
       </View>
     </TouchableOpacity>
-    <View style={styles.actionParams}>
-      {renderParams(record.action)}
-    </View>
+    <TouchableWithoutFeedback onPress={handleExpand(args, record.id)}>
+      <View style={styles.actionParams}>
+        {renderParams(record.action)}
+      </View>
+    </TouchableWithoutFeedback>
   </View>
 ))
 
@@ -89,7 +99,8 @@ const setScrollAnchor = (history, refAnchor) => {
   }
 }
 
-const renderHistory = (dispatch, { timetravel }, { refList, refAnchor }) => {
+const renderHistory = (args) => {
+  const { timetravel, refList, refAnchor } = args
   const history = R.reverse(timetravel.history)
   setScrollAnchor(history, refAnchor)
 
@@ -102,7 +113,7 @@ const renderHistory = (dispatch, { timetravel }, { refList, refAnchor }) => {
         data={history}
         getItemLayout={getItemLayout}
         keyExtractor={keyExtractor}
-        renderItem={renderRecord(dispatch, refAnchor)}
+        renderItem={renderRecord(args)}
         ref={refList}
         style={styles.list}
       />
@@ -116,14 +127,21 @@ const useBdux = createUseBdux({
 
 export const History = (props) => {
   const { dispatch, state } = useBdux(props)
+  const [expandId, setExpandId] = useState()
   const scrollIntoView = useScrollIntoView()
   useEffect(scrollIntoView.handleUpdate)
 
   return useMemo(() => (
-    hasHistory(state)
-      && renderHistory(dispatch, state, scrollIntoView)
+    hasHistory(state) && renderHistory({
+      dispatch,
+      expandId,
+      setExpandId,
+      timetravel: state.timetravel,
+      refList: scrollIntoView.refList,
+      refAnchor: scrollIntoView.refAnchor,
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [dispatch, state.timetravel, scrollIntoView])
+  ), [dispatch, state.timetravel, expandId, scrollIntoView])
 }
 
 export default History

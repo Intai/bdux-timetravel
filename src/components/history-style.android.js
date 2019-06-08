@@ -8,10 +8,14 @@ export default {
   },
   item: {
     backgroundColor: 'rgba(0,0,0,0.1)',
+    overflow: 'hidden',
     height: 125
   },
   anchor: {
     backgroundColor: 'lightcyan'
+  },
+  expand: {
+    height: undefined
   },
   actionTypeWrap: {
     backgroundColor: 'rgba(0,0,0,0.1)',

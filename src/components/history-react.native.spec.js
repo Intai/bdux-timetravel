@@ -3,11 +3,12 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import React from 'react'
+import * as R from 'ramda'
 import * as Bacon from 'baconjs'
 import { JSDOM } from 'jsdom'
 import { shallow, mount } from 'enzyme'
 import 'react-native-mock-render/mock'
-import { TouchableOpacity, ListView, View, Text } from 'react-native'
+import { TouchableOpacity, TouchableWithoutFeedback, FlatList, View, Text } from 'react-native'
 import {
   requireIOS,
   requireAndroid } from '../utils/test-util'
@@ -16,8 +17,8 @@ import TimeTravelStore from '../stores/timetravel-store'
 
 const renderFirstRow = (History, timetravel) => {
   const wrapper = shallow(<History />)
-  const renderRow = wrapper.find(ListView).prop('renderRow')
-  return renderRow(timetravel.history[0])
+  const renderRow = wrapper.find(FlatList).prop('renderItem')
+  return renderRow({ item: timetravel.history[0] })
 }
 
 describe('History Component for react-native', () => {
@@ -52,8 +53,8 @@ describe('History Component for react-native', () => {
         .returns(Bacon.constant({ history: [] }))
       const wrapper = shallow(<History />)
       const list = wrapper.childAt(0)
-      chai.expect(list.type()).to.equal(ListView)
-      chai.expect(list.prop('dataSource')).to.eql({ _dataBlob: [] })
+      chai.expect(list.type()).to.equal(FlatList)
+      chai.expect(list.prop('data')).to.eql([])
     })
 
     it('should setup data source for a history item', () => {
@@ -67,12 +68,34 @@ describe('History Component for react-native', () => {
 
       const wrapper = shallow(<History />)
       const list = wrapper.childAt(0)
-      chai.expect(list.type()).to.equal(ListView)
-      chai.expect(list.prop('dataSource')).to.eql({
-        _dataBlob: [{
-          id: 1,
-          action: {}
-        }]
+      chai.expect(list.type()).to.equal(FlatList)
+      chai.expect(list.prop('data')).to.eql([{
+        id: 1,
+        action: {}
+      }])
+    })
+
+    it('should setup layout for each history item', () => {
+      sandbox.stub(TimeTravelStore, 'getProperty')
+        .returns(Bacon.constant({
+          history: [{
+            id: 1,
+            action: {}
+          }]
+        }))
+
+      const wrapper = shallow(<History />)
+      const list = wrapper.childAt(0)
+      const getItemLayout = list.prop('getItemLayout')
+      chai.expect(getItemLayout(null, 0)).to.eql({
+        length: styles.item.height,
+        offset: 0,
+        index: 0,
+      })
+      chai.expect(getItemLayout(null, 1)).to.eql({
+        length: styles.item.height,
+        offset: styles.item.height,
+        index: 1,
       })
     })
 
@@ -88,7 +111,7 @@ describe('History Component for react-native', () => {
         .returns(Bacon.constant(timetravel))
       const node = renderFirstRow(History, timetravel)
       chai.expect(node.type).to.equal(View)
-      chai.expect(node.props.style).to.be.empty
+      chai.expect(node.props.style).to.eql(styles.item)
     })
 
     it('should highlight the anchor', () => {
@@ -137,7 +160,7 @@ describe('History Component for react-native', () => {
         .returns(Bacon.constant(timetravel))
       const node = renderFirstRow(History, timetravel)
       const wrapper = shallow(<component { ...node.props } />)
-      const params = wrapper.children(View).find(Text)
+      const params = wrapper.childAt(1).find(Text)
       chai.expect(params).to.have.length(1)
       chai.expect(params.key()).to.equal('param')
       chai.expect(params.children()).to.have.length(3)
@@ -161,7 +184,7 @@ describe('History Component for react-native', () => {
         .returns(Bacon.constant(timetravel))
       const node = renderFirstRow(History, timetravel)
       const wrapper = shallow(<component { ...node.props } />)
-      const params = wrapper.children(View).find(Text)
+      const params = wrapper.childAt(1).find(Text)
       chai.expect(params).to.have.length(1)
       chai.expect(params.key()).to.equal('nested')
       chai.expect(params.childAt(2).text()).to.equal('{\n  param: "value" }')
@@ -215,7 +238,7 @@ describe('History Component for react-native', () => {
         .returns(Bacon.constant(timetravel))
       const node = renderFirstRow(History, timetravel)
       const wrapper = shallow(<component { ...node.props } />)
-      const text = wrapper.children(View).find(Text)
+      const text = wrapper.childAt(1).find(Text)
       chai.expect(text.prop('style')).to.include(styles.actionValue)
     })
 
@@ -228,33 +251,23 @@ describe('History Component for react-native', () => {
         global.Element = dom.window.Element
       })
 
-      it('should reference wrap for scroll-into-view', () => {
-        sandbox.spy(React, 'createRef')
-        sandbox.stub(TimeTravelStore, 'getProperty')
-          .returns(Bacon.constant({ history: [] }))
-        mount(<History />)
-        chai.expect(React.createRef.callCount).to.equal(3)
-        chai.expect(React.createRef.returnValues[0].current)
-          .to.have.nested.property('props.style')
-          .and.to.equal(styles.wrap)
-      })
-
       it('should reference list for scroll-into-view', () => {
         sandbox.spy(React, 'createRef')
         sandbox.stub(TimeTravelStore, 'getProperty')
           .returns(Bacon.constant({ history: [] }))
         mount(<History />)
-        chai.expect(React.createRef.callCount).to.equal(3)
-        chai.expect(React.createRef.returnValues[1].current)
+        chai.expect(React.createRef.callCount).to.equal(2)
+        chai.expect(React.createRef.returnValues[0].current)
           .to.have.nested.property('props.style')
           .and.to.equal(styles.list)
       })
 
-      it('should reference anchor for scroll-into-view', () => {
+      it('should reference the last anchor for scroll-into-view', () => {
         const timetravel = {
           history: [{
             id: 1,
             anchor: true,
+            isLast: true,
             action: {}
           }]
         }
@@ -262,13 +275,69 @@ describe('History Component for react-native', () => {
         sandbox.spy(React, 'createRef')
         sandbox.stub(TimeTravelStore, 'getProperty')
           .returns(Bacon.constant(timetravel))
+        mount(<History />)
+        chai.expect(React.createRef.callCount).to.equal(2)
+        const anchor = React.createRef.returnValues[1].current
+        chai.expect(anchor.getIndex()).to.equal(0)
+        chai.expect(anchor.getId()).to.equal(1)
+      })
+
+      it('should not reference an anchor which is not the last for scroll-into-view', () => {
+        const timetravel = {
+          history: [{
+            id: 1,
+            anchor: true,
+            action: {}
+          }, {
+            id: 2,
+            action: {}
+          }]
+        }
+
+        sandbox.spy(React, 'createRef')
+        sandbox.stub(TimeTravelStore, 'getProperty')
+          .returns(Bacon.constant(timetravel))
+        mount(<History />)
+        chai.expect(React.createRef.callCount).to.equal(2)
+        const anchor = React.createRef.returnValues[1].current
+        chai.expect(anchor.getIndex()).to.equal(-1)
+        chai.expect(anchor.getId()).to.be.undefined
+      })
+
+      it('should expand on pressing params', () => {
+        const timetravel = {
+          history: [{
+            id: 1,
+            action: {}
+          }]
+        }
+
+        sandbox.stub(TimeTravelStore, 'getProperty')
+          .returns(Bacon.constant(timetravel))
         const wrapper = mount(<History />)
-        const renderRow = wrapper.find(ListView).prop('renderRow')
-        mount(React.createElement(() => renderRow(timetravel.history[0])))
-        chai.expect(React.createRef.callCount).to.equal(3)
-        chai.expect(React.createRef.returnValues[2].current)
-          .to.have.nested.property('props.style')
-          .and.to.equal(styles.anchor)
+        wrapper.find(TouchableWithoutFeedback).prop('onPress')()
+        wrapper.setProps({})
+        chai.expect(wrapper.find(View).at(1).prop('style'))
+          .to.include(R.merge(styles.item, styles.expand))
+      })
+
+      it('should toggle expand on pressing params', () => {
+        const timetravel = {
+          history: [{
+            id: 1,
+            action: {}
+          }]
+        }
+
+        sandbox.stub(TimeTravelStore, 'getProperty')
+          .returns(Bacon.constant(timetravel))
+        const wrapper = mount(<History />)
+        wrapper.find(TouchableWithoutFeedback).prop('onPress')()
+        wrapper.setProps({})
+        wrapper.find(TouchableWithoutFeedback).prop('onPress')()
+        wrapper.setProps({})
+        chai.expect(wrapper.find(View).at(1).prop('style'))
+          .to.not.include(styles.expand)
       })
 
     })
@@ -320,7 +389,7 @@ describe('History Component for react-native', () => {
         .returns(Bacon.constant(timetravel))
       const node = renderFirstRow(History, timetravel)
       const wrapper = shallow(<component { ...node.props } />)
-      const text = wrapper.children(View).find(Text)
+      const text = wrapper.childAt(1).find(Text)
       chai.expect(text.prop('style')).to.include(styles.actionValue)
     })
 
