@@ -118,7 +118,7 @@ describe('TimeTravel Component', () => {
           </BduxContext.Provider>
         </div>
       )
-      const button = wrapper.find('Button').first()
+      const button = wrapper.find(Button).first()
       chai.expect(button.prop('onClick')).to.equal(TimeTravelAction.restart)
     })
 
@@ -130,7 +130,7 @@ describe('TimeTravel Component', () => {
           </BduxContext.Provider>
         </div>
       )
-      const button = wrapper.find('Button').at(1)
+      const button = wrapper.find(Button).at(1)
       chai.expect(button.prop('onClick')).to.equal(TimeTravelAction.declutch)
     })
 
@@ -144,7 +144,7 @@ describe('TimeTravel Component', () => {
           </BduxContext.Provider>
         </div>
       )
-      const button = wrapper.find('Button').at(1)
+      const button = wrapper.find(Button).at(1)
       chai.expect(button.prop('onClick')).to.equal(TimeTravelAction.clutch)
     })
 
@@ -156,7 +156,7 @@ describe('TimeTravel Component', () => {
           </BduxContext.Provider>
         </div>
       )
-      const button = wrapper.find('Button').at(2)
+      const button = wrapper.find(Button).at(2)
       chai.expect(button.prop('onClick')).to.equal(TimeTravelAction.toggleHistory)
     })
 
@@ -170,7 +170,7 @@ describe('TimeTravel Component', () => {
           </BduxContext.Provider>
         </div>
       )
-      const button = wrapper.find('Button').at(2)
+      const button = wrapper.find(Button).at(2)
       chai.expect(button.prop('onClick')).to.equal(TimeTravelAction.toggleHistory)
     })
 
