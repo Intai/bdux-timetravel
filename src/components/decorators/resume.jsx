@@ -1,4 +1,4 @@
-import * as R from 'ramda'
+import { F } from 'ramda'
 import React, { useEffect } from 'react'
 import { resume } from '../../actions/timetravel-action'
 
@@ -6,7 +6,7 @@ const getDisplayName = (Component) => (
   Component.displayName || Component.name || 'Component'
 )
 
-export const decorateComponent = (Component = R.F) => (
+export const decorateComponent = (Component = F) => (
   class extends React.Component {
     static displayName = getDisplayName(Component)
     static defaultProps = {}
@@ -25,7 +25,9 @@ export const decorateComponent = (Component = R.F) => (
   }
 )
 
-export const useHook = ({ dispatch }) => {
+export const useHook = (_props, params) => {
+  const { dispatch } = params || {}
+
   useEffect(
     () => {
       if (dispatch) {

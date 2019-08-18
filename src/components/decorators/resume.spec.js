@@ -80,10 +80,10 @@ describe('Resume Decorator', () => {
     it('should create a resume action using hook', () => {
       const callback = sinon.stub()
       const Test = (props) => {
-        useResumeHook(props)
+        useResumeHook(props, { dispatch: callback })
         return false
       }
-      mount(<Test dispatch={callback} />)
+      mount(<Test />)
       chai.expect(callback.calledOnce).to.be.true
       chai.expect(callback.lastCall.args[0]).to.eql(createResumeAction())
     })
