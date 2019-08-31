@@ -124,19 +124,13 @@ const reloadDeclutchProperty = (declutchStream) => () => {
   initDeclutchProperty(declutchStream)
 }
 
-const plugDeclutchStream = R.curry((declutchStream, preStream) => {
-  declutchStream.plug(
-    // whether currently clutched to dispatcher.
-    Bacon.mergeAll(
-      preStream
-        .filter(isClutch)
-        .map(R.F),
-      preStream
-        .filter(isDeclutch)
-        .map(R.T)
-    )
-  )
-})
+const updateDeclutchProperty = (declutchStream) => (params) => {
+  if (isClutch(params)) {
+    declutchStream.push(false)
+  } else if (isDeclutch(params)) {
+    declutchStream.push(true)
+  }
+}
 
 export const declutchProperty = (() => {
   const declutchStream = new Bacon.Bus()
@@ -145,10 +139,8 @@ export const declutchProperty = (() => {
 
   return {
     reload: reloadDeclutchProperty(declutchStream),
-    get: R.pipe(
-      plugDeclutchStream(declutchStream),
-      R.always(declutchProperty)
-    )
+    update: updateDeclutchProperty(declutchStream),
+    get: () => declutchProperty,
   }
 })()
 
@@ -180,18 +172,19 @@ const disableResumeAfterRevert = (() => {
 })();
 
 const getPreOutputOnClient = (preStream) => (
-  Bacon.when([
-    declutchProperty.get(preStream),
+  declutchProperty.get()
     // wait for storage.
-    preStream.holdWhen(createHistoryValve())
-  // filter out actions while declutched.
-  ], mapDeclutchToIdle)
-  // record the action and store states.
-  .doAction(dispatchRecordAction)
-  // disable resuming after done reverting.
-  .doAction(disableResumeAfterRevert)
-  // handle revert action.
-  .map(mapTimeRevert)
+    .sampledBy(preStream.holdWhen(createHistoryValve()),
+      // filter out actions while declutched.
+      mapDeclutchToIdle)
+    // update whether currently clutched to dispatcher.
+    .doAction(declutchProperty.update)
+    // record the action and store states.
+    .doAction(dispatchRecordAction)
+    // disable resuming after done reverting.
+    .doAction(disableResumeAfterRevert)
+    // handle revert action.
+    .map(mapTimeRevert)
 )
 
 const getPreOutput = R.ifElse(
