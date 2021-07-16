@@ -2,7 +2,6 @@ import * as R from 'ramda'
 import React from 'react'
 import { TouchableOpacity, View, Text } from 'react-native'
 import styles from './button-style'
-import { useBdux } from 'bdux'
 
 const mergeTextStyle = R.pipe(
   R.defaultTo({}),
@@ -11,7 +10,6 @@ const mergeTextStyle = R.pipe(
 )
 
 export const Button = (props) => {
-  useBdux(props)
   const { style, children, onClick } = props
   return (
     <TouchableOpacity onPress={onClick}>

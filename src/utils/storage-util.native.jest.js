@@ -1,10 +1,15 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 import chai from 'chai'
 import sinon from 'sinon'
-import 'react-native-mock-render/mock'
-import { AsyncStorage } from 'react-native'
-import Storage from './storage-util.native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import Storage from './storage-util'
+
+const isPromise = promise => (
+  promise
+    && typeof promise.then === 'function'
+    && promise[Symbol.toStringTag] === 'Promise'
+)
 
 describe('Storage Utilities for react-native', () => {
 
@@ -15,15 +20,15 @@ describe('Storage Utilities for react-native', () => {
   })
 
   it('should return a promise to save', () => {
-    chai.expect(Storage.save('name', [])).to.be.instanceof(Promise)
+    chai.expect(isPromise(Storage.save('name', []))).to.be.true
   })
 
   it('should return a promise to load', () => {
-    chai.expect(Storage.load()).to.be.instanceof(Promise)
+    chai.expect(isPromise(Storage.load())).to.be.true
   })
 
   it('should return a promise to remove', () => {
-    chai.expect(Storage.remove()).to.be.instanceof(Promise)
+    chai.expect(isPromise(Storage.remove())).to.be.true
   })
 
   it('should save to async storage', () => {

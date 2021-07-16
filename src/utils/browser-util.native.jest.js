@@ -1,7 +1,7 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 import chai from 'chai'
-import Browser from './browser-util.native'
+import Browser from './browser-util'
 
 describe('Browser Utilities for react-native', () => {
 

@@ -12,23 +12,81 @@ function clean() {
   return del(['es', 'lib']);
 }
 
-gulp.task('cover', function(cb) {
+function coverWeb(cb) {
   var cmd = spawn('node', [
-    'node_modules/cross-env/dist/bin/cross-env.js', 'NODE_ENV=test',
+    'node_modules/cross-env/src/bin/cross-env.js', 'NODE_ENV=mocha',
     'node_modules/nyc/bin/nyc.js',
     'node_modules/mocha/bin/_mocha',
-    '--opts', '.mocha.opts'
+    '--require', '@babel/register',
+    '--require', 'regenerator-runtime/runtime',
+    'src/mocha.setup.js',
+    'src/**/*.spec.js*'
   ], {
     stdio: 'inherit'
   });
 
   cmd.on('close', cb);
-});
+}
 
-function test(cb) {
+function coverIOS(cb) {
+  var cmd = spawn('node', [
+    'node_modules/cross-env/src/bin/cross-env.js', 'NODE_ENV=jest',
+    'node_modules/jest/bin/jest.js',
+    '--setupFilesAfterEnv="./jest.setup.js"',
+    '--config="./src/jest.config.ios.js"',
+    '--coverage'
+  ], {
+    stdio: 'inherit'
+  });
+
+  cmd.on('close', cb);
+}
+
+function coverAndroid(cb) {
+  var cmd = spawn('node', [
+    'node_modules/cross-env/src/bin/cross-env.js', 'NODE_ENV=jest',
+    'node_modules/jest/bin/jest.js',
+    '--setupFilesAfterEnv="./jest.setup.js"',
+    '--config="./src/jest.config.android.js"',
+    '--coverage'
+  ], {
+    stdio: 'inherit'
+  });
+
+  cmd.on('close', cb);
+}
+
+function testWeb(cb) {
   var cmd = spawn('node', [
     'node_modules/mocha/bin/mocha',
-    '--opts', '.mocha.opts'
+    '--require', '@babel/register',
+    '--require', 'regenerator-runtime/runtime',
+    'src/mocha.setup.js',
+    'src/**/*.spec.js*'
+  ], {
+    stdio: 'inherit'
+  });
+
+  cmd.on('close', cb);
+}
+
+function jestIOS(cb) {
+  var cmd = spawn('node', [
+    'node_modules/jest/bin/jest',
+    '--setupFilesAfterEnv="./jest.setup.js"',
+    '--config="./src/jest.config.ios.js"'
+  ], {
+    stdio: 'inherit'
+  });
+
+  cmd.on('close', cb);
+}
+
+function jestAndroid(cb) {
+  var cmd = spawn('node', [
+    'node_modules/jest/bin/jest',
+    '--setupFilesAfterEnv="./jest.setup.js"',
+    '--config="./src/jest.config.android.js"'
   ], {
     stdio: 'inherit'
   });
@@ -54,10 +112,9 @@ function babelEs() {
     .pipe(gulpBabel({
       presets: [
         ['@babel/preset-env', { modules: false }],
-        '@babel/react'
+        '@babel/preset-react'
       ],
       plugins: [
-        '@babel/plugin-syntax-object-rest-spread',
         '@babel/plugin-proposal-object-rest-spread',
         '@babel/plugin-proposal-class-properties'
       ]
@@ -66,10 +123,20 @@ function babelEs() {
 }
 
 function watch() {
-  gulp.watch([srcFiles, testFiles], test);
+  gulp.watch([srcFiles, testFiles], testWeb);
 }
 
-gulp.task('test', test);
+gulp.task('test', gulp.series(
+  testWeb,
+  jestIOS,
+  jestAndroid
+));
+
+gulp.task('cover', gulp.series(
+  coverWeb,
+  coverIOS,
+  coverAndroid
+));
 
 gulp.task('lint', lint);
 
@@ -81,6 +148,6 @@ gulp.task('build', gulp.series(
 
 gulp.task('default', gulp.series(
   lint,
-  test,
+  testWeb,
   watch
 ));

@@ -1,7 +1,7 @@
 import * as R from 'ramda'
 import React from 'react'
-import styles from './button-style'
 import { useBdux } from 'bdux'
+import styles from './button-style'
 
 const mergeButtonStyle = R.pipe(
   R.defaultTo({}),

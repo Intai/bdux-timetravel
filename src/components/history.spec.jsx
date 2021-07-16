@@ -7,7 +7,7 @@ import * as Bacon from 'baconjs'
 import { JSDOM } from 'jsdom'
 import { shallow, mount } from 'enzyme'
 import TimeTravelStore from '../stores/timetravel-store'
-import { History } from './history-react'
+import { History } from './history'
 import styles from './history-style'
 
 describe('History Component', () => {

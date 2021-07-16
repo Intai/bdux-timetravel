@@ -1,5 +1,5 @@
 import * as R from 'ramda'
-import { AsyncStorage } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const jsonParse = (json) => {
   try {

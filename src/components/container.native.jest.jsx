@@ -1,10 +1,10 @@
-/* eslint-env mocha */
+/* eslint-env jest */
 
 import chai from 'chai'
 import React from 'react'
 import { shallow } from 'enzyme'
 import { View, Text } from 'react-native'
-import { Container } from './container-react.native'
+import { Container } from './container'
 
 describe('Container Component for react-native', () => {
 

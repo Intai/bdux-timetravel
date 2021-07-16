@@ -7,7 +7,7 @@ import React, { useCallback, useMemo } from 'react'
 import { JSDOM } from 'jsdom'
 import { shallow, mount } from 'enzyme'
 import { applyMiddleware, clearMiddlewares } from 'bdux'
-import ButtonWithMemo, { Button } from './button-react'
+import ButtonWithMemo, { Button } from './button'
 import styles from './button-style'
 
 describe('Button Component', () => {

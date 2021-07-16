@@ -6,7 +6,7 @@ import React, { useMemo } from 'react'
 import { JSDOM } from 'jsdom'
 import { shallow, mount } from 'enzyme'
 import { applyMiddleware, clearMiddlewares } from 'bdux'
-import ContainerWithMemo, { Container } from './container-react'
+import ContainerWithMemo, { Container } from './container'
 
 describe('Container Component', () => {
 

@@ -6,7 +6,7 @@ import * as R from 'ramda'
 import React from 'react'
 import { JSDOM } from 'jsdom'
 import { shallow, mount } from 'enzyme'
-import { useScrollIntoView } from './scroll-into-view-react'
+import { useScrollIntoView } from './scroll-into-view'
 
 describe('useScrollIntoView Hook', () => {
 

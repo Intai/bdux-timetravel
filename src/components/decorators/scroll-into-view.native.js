@@ -1,5 +1,5 @@
 import * as R from 'ramda'
-import React, { useMemo } from 'react'
+import { useRef, useMemo } from 'react'
 
 const getAnchorIndex = ({ list, anchor }) => ({
   list,
@@ -48,19 +48,17 @@ const scrollToAnchor = R.pipe(
 )
 
 export const useScrollIntoView = () => {
-  return useMemo(() => {
-    const refList = React.createRef()
-    const refAnchor = React.createRef()
+  const refList = useRef()
+  const refAnchor = useRef()
 
-    return {
-      refList,
-      refAnchor,
-      handleUpdate: () => {
-        scrollToAnchor({
-          list: refList.current,
-          anchor: refAnchor.current,
-        })
-      },
+  return useMemo(() => ({
+    refList,
+    refAnchor,
+    handleUpdate: () => {
+      scrollToAnchor({
+        list: refList.current,
+        anchor: refAnchor.current,
+      })
     }
-  }, [])
+  }), [])
 }

@@ -1,5 +1,0 @@
---require @babel/register
---require @babel/polyfill
-
-src/test.config.js
-src/**/*.spec.js

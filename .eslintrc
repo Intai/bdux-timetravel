@@ -4,8 +4,7 @@
     "ecmaVersion": 6,
     "sourceType": "module",
     "ecmaFeatures": {
-      "jsx": true,
-      "experimentalObjectRestSpread": true
+      "jsx": true
     }
   },
   "env": {
@@ -36,11 +35,10 @@
     "react/prop-types": 0,
     "react/jsx-indent": [1, 2],
     "react/jsx-indent-props": [1, 2],
-    "react/jsx-no-literals": 0,
-    "react/jsx-handler-names": 0,
     "react/no-multi-comp": [1, {
       "ignoreStateless": true
     }],
+    "react/forbid-component-props": "off",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn"
   }

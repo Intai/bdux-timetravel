@@ -3,7 +3,7 @@ import React, { useMemo } from 'react'
 import TimeTravelStore from '../stores/timetravel-store'
 import HistoryItem from './history-item'
 import styles from './history-style'
-import { useScrollIntoView } from './decorators/scroll-into-view-react'
+import { useScrollIntoView } from './decorators/scroll-into-view'
 import { createUseBdux } from 'bdux'
 
 const hasHistory = R.pathSatisfies(

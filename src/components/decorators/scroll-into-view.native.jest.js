@@ -4,7 +4,7 @@ import chai from 'chai'
 import sinon from 'sinon'
 import React from 'react'
 import { shallow } from 'enzyme'
-import { useScrollIntoView } from './scroll-into-view-react.native'
+import { useScrollIntoView } from './scroll-into-view'
 
 const createElements = (args) => {
   const elms = {

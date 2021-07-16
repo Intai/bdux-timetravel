@@ -1,6 +1,8 @@
 .tags*
 node_modules
 coverage
+coverage.ios
+coverage.android
 dist
 lib
 es
