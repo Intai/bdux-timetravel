@@ -20,7 +20,7 @@ const renderFirstRow = (History, timetravel) => {
   return renderRow({ item: timetravel.history[0] })
 }
 
-describe('History Component for ios', () => {
+describe('History Component for react-native', () => {
 
   let sandbox
 
