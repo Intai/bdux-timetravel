@@ -1,4 +1,3 @@
-import * as R from 'ramda'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const jsonParse = (json) => {
@@ -26,6 +25,6 @@ const remove = (name) => (
 export default {
 
   load,
-  save: R.curryN(2, save),
+  save,
   remove
 }

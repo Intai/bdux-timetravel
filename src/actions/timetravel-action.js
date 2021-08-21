@@ -9,6 +9,7 @@ import Browser from '../utils/browser-util'
 const recordStream = new Bacon.Bus()
 const resumeStream = new Bacon.Bus()
 const revertStream = new Bacon.Bus()
+const replaceStream = new Bacon.Bus()
 const clearHistoryStream = new Bacon.Bus()
 const filterResumeStream = new Bacon.Bus()
 
@@ -132,6 +133,8 @@ const createHistoryProperty = () => (
     [recordStream], accumRecords,
     // anchor at a time slice in history.
     [revertStream], addAnchor,
+    // replace history. e.g. shift older records off the history.
+    [replaceStream], R.nthArg(1),
     // clear the currently accumulated history.
     [clearHistoryStream], R.always([])
   )
@@ -235,12 +238,21 @@ const createResumeToAnchor = () => (
   .sampledBy(getResumeStream(), R.identity)
 )
 
+const saveHistoyInStorage = history => {
+  // save in session storage.
+  Storage.save('bduxHistory', history, R.tail)
+    .then(saved => {
+      if (saved !== history) {
+        replaceStream.push(saved)
+      }
+    })
+}
+
 const createStorageSave = () => (
   historyProperty.get()
     .changes()
     .debounce(500)
-    // save in session storage.
-    .doAction(Storage.save('bduxHistory'))
+    .doAction(saveHistoyInStorage)
     .filter(R.F)
 )
 
