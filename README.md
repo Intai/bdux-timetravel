@@ -2,7 +2,7 @@
 
 A [Bdux](https://github.com/Intai/bdux) middleware to record and travel back in history.
 
-[![Build Status](https://travis-ci.com/Intai/bdux-timetravel.svg?branch=master)](https://travis-ci.com/Intai/bdux-timetravel)
+[![Build Status](https://app.travis-ci.com/Intai/bdux-timetravel.svg?branch=master)](https://app.travis-ci.com/Intai/bdux-timetravel)
 [![Coverage Status](https://coveralls.io/repos/github/Intai/bdux-timetravel/badge.svg?branch=master)](https://coveralls.io/github/Intai/bdux-timetravel?branch=master)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/06e413b912b34846858c59e99c797938)](https://www.codacy.com/gh/Intai/bdux-timetravel/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Intai/bdux-timetravel&amp;utm_campaign=Badge_Grade)
 
