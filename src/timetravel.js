@@ -64,7 +64,7 @@ const mapTimeRevert = R.when(
 
 const isNotTimeTravel = R.pipe(
   R.path(['action', 'type']),
-  R.flip(R.contains)([
+  R.flip(R.includes)([
     ActionTypes.TIMETRAVEL_TOGGLE_HISTORY,
     ActionTypes.TIMETRAVEL_HISTORY,
     ActionTypes.TIMETRAVEL_REVERT,
@@ -76,7 +76,7 @@ const isNotTimeTravel = R.pipe(
 )
 
 const mapToIdle = (args) => (
-  R.mergeWith(R.merge)(args, {
+  R.mergeWith(R.mergeRight)(args, {
     action: {
       type: ActionTypes.TIMETRAVEL_IDLE,
       skipLog: true

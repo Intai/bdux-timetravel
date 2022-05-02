@@ -5,7 +5,7 @@ import sinon from 'sinon'
 import React from 'react'
 import * as Bacon from 'baconjs'
 import { JSDOM } from 'jsdom'
-import { shallow, mount } from 'enzyme'
+import { render } from '@testing-library/react'
 import TimeTravelStore from '../stores/timetravel-store'
 import { History } from './history'
 import styles from './history-style'
@@ -15,20 +15,29 @@ describe('History Component', () => {
   let sandbox
 
   beforeEach(() => {
+    const dom = new JSDOM('<html></html>')
+    global.window = dom.window
+    global.document = dom.window.document
+    global.Element = dom.window.Element
     sandbox = sinon.createSandbox()
   })
 
+  afterEach(() => {
+    sandbox.restore()
+  })
+
   it('should render nothing by default', () => {
-    const wrapper = shallow(<History />)
-    chai.expect(wrapper.type()).to.be.null
+    const { container } = render(<History />)
+    chai.expect(container.firstChild).to.be.null
   })
 
   it('should render an empty history', () => {
     sandbox.stub(TimeTravelStore, 'getProperty')
       .returns(Bacon.constant({ history: [] }))
-    const wrapper = shallow(<History />)
-    chai.expect(wrapper.name()).to.equal('ul')
-    chai.expect(wrapper.prop('style')).to.include(styles.hide)
+    const { container } = render(<History />)
+    const history = container.firstChild
+    chai.expect(history.tagName).to.equal('UL')
+    chai.expect(history.style).to.include(styles.hide)
   })
 
   it('should show history', () => {
@@ -38,8 +47,9 @@ describe('History Component', () => {
         history: []
       }))
 
-    const wrapper = shallow(<History />)
-    chai.expect(wrapper.prop('style')).to.not.include(styles.hide)
+    const { container } = render(<History />)
+    const history = container.firstChild
+    chai.expect(history.style).to.not.include(styles.hide)
   })
 
   it('should render a history item', () => {
@@ -47,31 +57,19 @@ describe('History Component', () => {
       .returns(Bacon.constant({
         history: [{
           id: 1,
-          action: {}
+          action: {
+            type: 'TYPE',
+            param: 'value',
+          }
         }]
       }))
 
-    const wrapper = shallow(<History />)
-    chai.expect(wrapper.children()).to.have.length(1)
-    chai.expect(wrapper.childAt(0).key()).to.equal('1')
-    chai.expect(wrapper.childAt(0).prop('record')).to.eql({
-      id: 1,
-      action: {}
-    })
-  })
-
-  it('should pass refAnchor to history item', () => {
-    sandbox.stub(TimeTravelStore, 'getProperty')
-      .returns(Bacon.constant({
-        history: [{
-          id: 1,
-          action: {}
-        }]
-      }))
-
-    const wrapper = shallow(<History />)
-    chai.expect(wrapper.children()).to.have.length(1)
-    chai.expect(wrapper.childAt(0).prop('refAnchor')).to.have.property('current')
+    const { container } = render(<History />)
+    const history = container.firstChild
+    const historyItem = history.firstChild
+    chai.expect(history.childNodes).to.have.length(1)
+    chai.expect(historyItem.firstChild.innerHTML).to.equal('TYPE')
+    chai.expect(historyItem.childNodes[1].textContent).to.match(/^param:\s+"value"$/)
   })
 
   it('should render multiple history items', () => {
@@ -79,64 +77,57 @@ describe('History Component', () => {
       .returns(Bacon.constant({
         history: [{
           id: 1,
-          action: {}
+          action: {
+            type: 'TYPE1',
+          }
         }, {
           id: 2,
+          anchor: true,
+          action: {
+            type: 'TYPE2',
+            params: {
+              a: null,
+              b: undefined,
+            }
+          }
+        }]
+      }))
+
+    const { container } = render(<History />)
+    const history = container.firstChild
+    const firstHistoryItem = history.firstChild
+    const secondHistoryItem = history.childNodes[1]
+    chai.expect(history.childNodes).to.have.length(2)
+    chai.expect(firstHistoryItem.firstChild.innerHTML).to.equal('TYPE1')
+    chai.expect(secondHistoryItem.firstChild.innerHTML).to.equal('TYPE2')
+    chai.expect(secondHistoryItem.childNodes[1].textContent).to.match(/^params:\s+{\s+a:\s+null\s+}$/)
+  })
+
+  it('should reference list for scroll-into-view', () => {
+    sandbox.spy(React, 'createRef')
+    sandbox.stub(TimeTravelStore, 'getProperty')
+      .returns(Bacon.constant({ history: [] }))
+
+    render(<History />)
+    chai.expect(React.createRef.callCount).to.equal(2)
+    chai.expect(React.createRef.returnValues[0].current).to.have.property('tagName', 'UL')
+  })
+
+  it('should reference anchor for scroll-into-view', () => {
+    sandbox.spy(React, 'createRef')
+    sandbox.stub(TimeTravelStore, 'getProperty')
+      .returns(Bacon.constant({
+        history: [{
+          id: 1,
           anchor: true,
           action: {}
         }]
       }))
 
-    const wrapper = shallow(<History />)
-    chai.expect(wrapper.children()).to.have.length(2)
-    chai.expect(wrapper.childAt(1).key()).to.equal('2')
-    chai.expect(wrapper.childAt(1).prop('record')).to.eql({
-      id: 2,
-      anchor: true,
-      action: {}
-    })
-  })
-
-  describe('with jsdom', () => {
-
-    beforeEach(() => {
-      const dom = new JSDOM('<html></html>')
-      global.window = dom.window
-      global.document = dom.window.document
-      global.Element = dom.window.Element
-    })
-
-    it('should reference list for scroll-into-view', () => {
-      sandbox.spy(React, 'createRef')
-      sandbox.stub(TimeTravelStore, 'getProperty')
-        .returns(Bacon.constant({ history: [] }))
-
-      mount(<History />)
-      chai.expect(React.createRef.callCount).to.equal(2)
-      chai.expect(React.createRef.returnValues[0].current).to.have.property('tagName', 'UL')
-    })
-
-    it('should reference anchor for scroll-into-view', () => {
-      sandbox.spy(React, 'createRef')
-      sandbox.stub(TimeTravelStore, 'getProperty')
-        .returns(Bacon.constant({
-          history: [{
-            id: 1,
-            anchor: true,
-            action: {}
-          }]
-        }))
-
-      const wrapper = mount(<History />)
-      wrapper.setProps({})
-      chai.expect(React.createRef.callCount).to.equal(2)
-      chai.expect(React.createRef.returnValues[1].current).to.have.property('tagName', 'LI')
-    })
-
-  })
-
-  afterEach(() => {
-    sandbox.restore()
+    const { rerender } = render(<History />)
+    rerender(<History />)
+    chai.expect(React.createRef.callCount).to.equal(2)
+    chai.expect(React.createRef.returnValues[1].current).to.have.property('tagName', 'LI')
   })
 
 })

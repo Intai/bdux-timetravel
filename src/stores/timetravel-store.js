@@ -25,7 +25,7 @@ const isToggleHistory = isAction(
 )
 
 const mergeState = (name, func) => (
-  R.converge(R.mergeWith(R.merge), [
+  R.converge(R.mergeWith(R.mergeRight), [
     R.identity,
     R.pipe(
       func,
@@ -40,7 +40,7 @@ const hasNoAnchor = R.complement(
 )
 
 const setLastAnchor = R.adjust(
-  -1, R.flip(R.merge)({
+  -1, R.mergeLeft({
     anchor: true,
     isLast: true,
   })

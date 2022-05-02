@@ -51,7 +51,7 @@ const resetAnchor = R.ifElse(
   R.isNil,
   R.always([]),
   R.pipe(
-    R.flip(R.merge)({ anchor: false }),
+    R.mergeLeft({ anchor: false }),
     R.of
   )
 )
@@ -104,7 +104,7 @@ const accumRecords = R.ifElse(
 )
 
 const addAnchorToTimeSlice = R.curry((id, timeslice) => (
-  R.merge(timeslice, {
+  R.mergeRight(timeslice, {
     anchor: (id === timeslice.id)
   })
 ))
@@ -155,7 +155,7 @@ const onceThenNull = (func) => {
 
 const isNotTimeAction = R.pipe(
   R.path(['action', 'type']),
-  R.flip(R.contains)([
+  R.flip(R.includes)([
     ActionTypes.TIMETRAVEL_TOGGLE_HISTORY,
     ActionTypes.TIMETRAVEL_HISTORY,
     ActionTypes.TIMETRAVEL_REVERT,

@@ -4,7 +4,7 @@ import chai from 'chai'
 import sinon from 'sinon'
 import React, { useMemo } from 'react'
 import { JSDOM } from 'jsdom'
-import { shallow, mount } from 'enzyme'
+import { fireEvent, render } from '@testing-library/react'
 import { applyMiddleware, clearMiddlewares } from 'bdux'
 import HistoryItemWithMemo, { HistoryItem } from './history-item'
 import styles from './history-style'
@@ -15,12 +15,21 @@ describe('HistoryItem Component', () => {
   let sandbox
 
   beforeEach(() => {
+    const dom = new JSDOM('<html></html>')
+    global.window = dom.window
+    global.document = dom.window.document
+    global.Element = dom.window.Element
     sandbox = sinon.createSandbox()
   })
 
+  afterEach(() => {
+    sandbox.restore()
+  })
+
   it('should render nothing by default', () => {
-    const wrapper = shallow(<HistoryItem />)
-    chai.expect(wrapper.type()).to.be.null
+    const { container } = render(<HistoryItem />)
+    const historyItem = container.firstChild
+    chai.expect(historyItem).to.be.null
   })
 
   it('should render a history item', () => {
@@ -31,8 +40,9 @@ describe('HistoryItem Component', () => {
       }
     }
 
-    const wrapper = shallow(<HistoryItem {...props} />)
-    chai.expect(wrapper.type()).to.equal('li')
+    const { container } = render(<HistoryItem {...props} />)
+    const historyItem = container.firstChild
+    chai.expect(historyItem.tagName).to.equal('LI')
   })
 
   it('should highlight the anchor', () => {
@@ -44,8 +54,9 @@ describe('HistoryItem Component', () => {
       }
     }
 
-    const wrapper = shallow(<HistoryItem {...props} />)
-    chai.expect(wrapper.prop('style')).to.include(styles.anchor)
+    const { container } = render(<HistoryItem {...props} />)
+    const historyItem = container.firstChild
+    chai.expect(historyItem.style).to.include(styles.anchor)
   })
 
   it('should render an action type', () => {
@@ -58,8 +69,9 @@ describe('HistoryItem Component', () => {
       }
     }
 
-    const wrapper = shallow(<HistoryItem {...props} />)
-    chai.expect(wrapper.text()).to.equal('TYPE')
+    const { container } = render(<HistoryItem {...props} />)
+    const historyItem = container.firstChild
+    chai.expect(historyItem.textContent).to.equal('TYPE')
   })
 
   it('should render action parameters', () => {
@@ -72,11 +84,12 @@ describe('HistoryItem Component', () => {
       }
     }
 
-    const wrapper = shallow(<HistoryItem {...props} />)
-    const params = wrapper.find('ul')
-    chai.expect(params.children()).to.have.length(1)
-    chai.expect(params.childAt(0).key()).to.equal('param')
-    chai.expect(params.childAt(0).text()).to.match(/^param:\s+"value"$/)
+    const { container } = render(<HistoryItem {...props} />)
+    const historyItem = container.firstChild
+    const params = historyItem.querySelector('ul')
+    chai.expect(params.childNodes).to.have.length(1)
+    chai.expect(params.firstChild.firstChild.innerHTML).to.equal('param')
+    chai.expect(params.firstChild.textContent).to.match(/^param:\s+"value"$/)
   })
 
   it('should serialise action parameters', () => {
@@ -91,27 +104,27 @@ describe('HistoryItem Component', () => {
       }
     }
 
-    const wrapper = shallow(<HistoryItem {...props} />)
-    const params = wrapper.find('ul')
-    chai.expect(params.children()).to.have.length(1)
-    chai.expect(params.childAt(0).key()).to.equal('nested')
-    chai.expect(params.childAt(0).text()).to.match(/^nested:\s+{\s+param:\s+"value"\s+}$/)
+    const { container } = render(<HistoryItem {...props} />)
+    const historyItem = container.firstChild
+    const params = historyItem.querySelector('ul')
+    chai.expect(params.childNodes).to.have.length(1)
+    chai.expect(params.firstChild.firstChild.innerHTML).to.equal('nested')
+    chai.expect(params.firstChild.textContent).to.match(/^nested:\s+{\s+param:\s+"value"\s+}$/)
   })
 
-  describe('with jsdom', () => {
+  describe('with middleware', () => {
 
     let useHook
 
     beforeEach(() => {
-      const dom = new JSDOM('<html></html>')
-      global.window = dom.window
-      global.document = dom.window.document
-      global.Element = dom.window.Element
-
       useHook = sinon.stub()
       applyMiddleware({
         useHook
       })
+    })
+
+    afterEach(() => {
+      clearMiddlewares()
     })
 
     it('should reference anchor item for scroll-into-view', () => {
@@ -124,7 +137,7 @@ describe('HistoryItem Component', () => {
         }
       }
 
-      mount(<HistoryItem { ...props } />)
+      render(<HistoryItem { ...props } />)
       chai.expect(props.refAnchor.calledOnce).to.be.true
       chai.expect(props.refAnchor.lastCall.args[0]).to.have.property('tagName', 'LI')
     })
@@ -139,7 +152,7 @@ describe('HistoryItem Component', () => {
         }
       }
 
-      mount(<HistoryItem { ...props } />)
+      render(<HistoryItem { ...props } />)
       chai.expect(props.refAnchor.called).to.be.false
     })
 
@@ -152,8 +165,9 @@ describe('HistoryItem Component', () => {
         }
       }
 
-      const wrapper = mount(<HistoryItem {...props} />)
-      wrapper.find('div').first().simulate('click')
+      const { container } = render(<HistoryItem {...props} />)
+      const historyItem = container.firstChild
+      fireEvent.click(historyItem.querySelector('div'))
       chai.expect(TimeTravelAction.revert.calledOnce).to.be.true
       chai.expect(TimeTravelAction.revert.lastCall.args[0]).to.equal(1)
     })
@@ -164,8 +178,8 @@ describe('HistoryItem Component', () => {
         action: {}
       }
 
-      const wrapper = mount(<HistoryItemWithMemo record={record} />)
-      wrapper.setProps({ record })
+      const { rerender } = render(<HistoryItemWithMemo record={record} />)
+      rerender(<HistoryItemWithMemo record={record} />)
       chai.expect(useHook.callCount).to.equal(1)
     })
 
@@ -175,8 +189,8 @@ describe('HistoryItem Component', () => {
         action: {}
       }
 
-      const wrapper = mount(<HistoryItemWithMemo />)
-      wrapper.setProps({ record })
+      const { rerender } = render(<HistoryItemWithMemo />)
+      rerender(<HistoryItemWithMemo record={record} />)
       chai.expect(useHook.callCount).to.equal(2)
     })
 
@@ -186,8 +200,8 @@ describe('HistoryItem Component', () => {
         return <HistoryItemWithMemo refAnchor={refAnchor} />
       }
 
-      const wrapper = mount(<Test />)
-      wrapper.setProps({})
+      const { rerender } = render(<Test />)
+      rerender(<Test />)
       chai.expect(useHook.callCount).to.equal(1)
     })
 
@@ -197,19 +211,11 @@ describe('HistoryItem Component', () => {
         return <HistoryItemWithMemo refAnchor={refAnchor} />
       }
 
-      const wrapper = mount(<Test />)
-      wrapper.setProps({})
+      const { rerender } = render(<Test />)
+      rerender(<Test />)
       chai.expect(useHook.callCount).to.equal(2)
     })
 
-    afterEach(() => {
-      clearMiddlewares()
-    })
-
-  })
-
-  afterEach(() => {
-    sandbox.restore()
   })
 
 })

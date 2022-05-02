@@ -328,7 +328,7 @@ describe('History Component for react-native', () => {
       })
       const record = wrapper.findWhere((n) => n.type() === View && n.key() === 'history-record-1')
       chai.expect(record.prop('style'))
-        .to.include(R.merge(styles.item, styles.expand))
+        .to.include(R.mergeRight(styles.item, styles.expand))
     })
 
     it('should toggle expand on pressing params', () => {

@@ -62,6 +62,8 @@ const renderRecord = ({
   dispatch,
   expandId,
   setExpandId,
+// this is a render function instead of a component.
+// eslint-disable-next-line react/display-name
 }) => ({ item: record }) => (
   <View
     key={keyExtractor(record)}

@@ -5,72 +5,83 @@ import chai from 'chai'
 import sinon from 'sinon'
 import React, { useCallback, useMemo } from 'react'
 import { JSDOM } from 'jsdom'
-import { shallow, mount } from 'enzyme'
+import { fireEvent, render } from '@testing-library/react'
 import { applyMiddleware, clearMiddlewares } from 'bdux'
 import ButtonWithMemo, { Button } from './button'
 import styles from './button-style'
 
 describe('Button Component', () => {
 
+  beforeEach(() => {
+    const dom = new JSDOM('<html></html>')
+    global.window = dom.window
+    global.document = dom.window.document
+    global.Element = dom.window.Element
+  })
+
   it('should be a button element', () => {
-    const wrapper = shallow(<Button />)
-    chai.expect(wrapper.name()).to.equal('button')
+    const { container } = render(<Button />)
+    const button = container.firstChild
+    chai.expect(button.tagName).to.equal('BUTTON')
   })
 
   it('should have default button style', () => {
-    const wrapper = shallow(<Button />)
-    chai.expect(wrapper.prop('style')).to.include(styles.button)
+    const { container } = render(<Button />)
+    const button = container.firstChild
+    chai.expect(button.style).to.include(styles.button)
   })
 
   it('should be able to style color', () => {
-    const wrapper = shallow(<Button style={{ color: 'test' }} />)
-    const style = R.assoc('color', 'test', styles.button)
-    chai.expect(wrapper.prop('style')).to.include(style)
+    const { container } = render(<Button style={{ color: 'red' }} />)
+    const button = container.firstChild
+    chai.expect(button.style.color).to.equal('red')
   })
 
   it('should be able to style marginTop', () => {
-    const wrapper = shallow(<Button style={{ marginTop: 'test' }} />)
-    const style = R.assoc('marginTop', 'test', styles.button)
-    chai.expect(wrapper.prop('style')).to.include(style)
+    const { container } = render(<Button style={{ marginTop: '10px' }} />)
+    const button = container.firstChild
+    chai.expect(button.style.marginTop).to.equal('10px')
   })
 
   it('should not be able to style paddingTop', () => {
-    const wrapper = shallow(<Button style={{ paddingTop: 'test' }} />)
-    chai.expect(wrapper.prop('style')).to.include(styles.button)
+    const { container } = render(<Button style={{ paddingTop: '9999px' }} />)
+    const button = container.firstChild
+    chai.expect(button.style).to.include(styles.button)
   })
 
   it('should render child text', () => {
-    const wrapper = shallow(<Button>Click</Button>)
-    chai.expect(wrapper.text()).to.equal('Click')
+    const { container } = render(<Button>Click</Button>)
+    const button = container.firstChild
+    chai.expect(button.innerHTML).to.equal('Click')
   })
 
   it('should render children', () => {
-    const wrapper = shallow(<Button><div /><span /></Button>)
-    chai.expect(wrapper.childAt(0).type()).to.equal('div')
-    chai.expect(wrapper.childAt(1).type()).to.equal('span')
+    const { container } = render(<Button><div /><span /></Button>)
+    const button = container.firstChild
+    chai.expect(button.firstChild.tagName).to.equal('DIV')
+    chai.expect(button.childNodes[1].tagName).to.equal('SPAN')
   })
 
   it('should trigger click event', () => {
     const onClick = sinon.stub()
-    const wrapper = shallow(<Button onClick={onClick}/>)
-    wrapper.simulate('click')
+    const { container } = render(<Button onClick={onClick}/>)
+    fireEvent.click(container.firstChild)
     chai.expect(onClick.calledOnce).to.be.true
   })
 
-  describe('with jsdom', () => {
+  describe('with middleware', () => {
 
     let useHook
 
     beforeEach(() => {
-      const dom = new JSDOM('<html></html>')
-      global.window = dom.window
-      global.document = dom.window.document
-      global.Element = dom.window.Element
-
       useHook = sinon.stub()
       applyMiddleware({
         useHook
       })
+    })
+
+    afterEach(() => {
+      clearMiddlewares()
     })
 
     it('should not render with the same callcak', () => {
@@ -80,8 +91,8 @@ describe('Button Component', () => {
         return <ButtonWithMemo onClick={handleClick} />
       }
 
-      const wrapper = mount(<Test id="1" />)
-      wrapper.setProps({ id: '1' })
+      const { rerender } = render(<Test id="1" />)
+      rerender(<Test id="1" />)
       chai.expect(useHook.callCount).to.equal(1)
     })
 
@@ -92,8 +103,8 @@ describe('Button Component', () => {
         return <ButtonWithMemo onClick={handleClick} />
       }
 
-      const wrapper = mount(<Test id="1" />)
-      wrapper.setProps({ id: '2' })
+      const { rerender } = render(<Test id="1" />)
+      rerender(<Test id="2" />)
       chai.expect(useHook.callCount).to.equal(2)
     })
 
@@ -103,8 +114,8 @@ describe('Button Component', () => {
         return <ButtonWithMemo>{content}</ButtonWithMemo>
       }
 
-      const wrapper = mount(<Test content="1" />)
-      wrapper.setProps({ content: '1' })
+      const { rerender } = render(<Test content="1" />)
+      rerender(<Test content="1" />)
       chai.expect(useHook.callCount).to.equal(1)
     })
 
@@ -114,13 +125,9 @@ describe('Button Component', () => {
         return <ButtonWithMemo>{content}</ButtonWithMemo>
       }
 
-      const wrapper = mount(<Test content="1" />)
-      wrapper.setProps({ content: '2' })
+      const { rerender } = render(<Test content="1" />)
+      rerender(<Test content="2" />)
       chai.expect(useHook.callCount).to.equal(2)
-    })
-
-    afterEach(() => {
-      clearMiddlewares()
     })
 
   })

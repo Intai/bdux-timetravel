@@ -1,12 +1,8 @@
 /* eslint-env jest */
 
-import Enzyme from 'enzyme'
-import Adapter from 'enzyme-adapter-react-16'
 import mockAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock'
 
-Enzyme.configure({
-  adapter: new Adapter()
-})
+global.IS_REACT_ACT_ENVIRONMENT = true;
 
 function suppressDomErrors() {
   const regex = new RegExp('(Use PascalCase for React components)|'

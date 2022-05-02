@@ -6,7 +6,7 @@ import styles from './button-style'
 const mergeButtonStyle = R.pipe(
   R.defaultTo({}),
   R.pick(['color', 'marginTop']),
-  R.merge(styles.button)
+  R.mergeRight(styles.button)
 )
 
 export const Button = (props) => {

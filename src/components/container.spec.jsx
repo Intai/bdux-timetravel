@@ -4,47 +4,54 @@ import chai from 'chai'
 import sinon from 'sinon'
 import React, { useMemo } from 'react'
 import { JSDOM } from 'jsdom'
-import { shallow, mount } from 'enzyme'
+import { render } from '@testing-library/react'
 import { applyMiddleware, clearMiddlewares } from 'bdux'
 import ContainerWithMemo, { Container } from './container'
 
 describe('Container Component', () => {
 
+  beforeEach(() => {
+    const dom = new JSDOM('<html></html>')
+    global.window = dom.window
+    global.document = dom.window.document
+    global.Element = dom.window.Element
+  })
+
   it('should be a div element', () => {
-    const wrapper = shallow(<Container />)
-    chai.expect(wrapper.name()).to.equal('div')
+    const { container } = render(<Container />)
+    chai.expect(container.firstChild.tagName).to.equal('DIV')
   })
 
   it('should be able to style color', () => {
-    const wrapper = shallow(<Container style={{ color: 'test' }} />)
-    chai.expect(wrapper.prop('style')).to.have.property('color', 'test')
+    const { container } = render(<Container style={{ color: 'red' }} />)
+    chai.expect(container.firstChild.style).to.have.property('color', 'red')
   })
 
   it('should render child text', () => {
-    const wrapper = shallow(<Container>Click</Container>)
-    chai.expect(wrapper.text()).to.equal('Click')
+    const { container } = render(<Container>Click</Container>)
+    chai.expect(container.firstChild.innerHTML).to.equal('Click')
   })
 
   it('should render children', () => {
-    const wrapper = shallow(<Container><div /><span /></Container>)
-    chai.expect(wrapper.childAt(0).type()).to.equal('div')
-    chai.expect(wrapper.childAt(1).type()).to.equal('span')
+    const { container } = render(<Container><div /><span /></Container>)
+    const element = container.firstChild
+    chai.expect(element.firstChild.tagName).to.equal('DIV')
+    chai.expect(element.childNodes[1].tagName).to.equal('SPAN')
   })
 
-  describe('with jsdom', () => {
+  describe('with middleware', () => {
 
     let useHook
 
     beforeEach(() => {
-      const dom = new JSDOM('<html></html>')
-      global.window = dom.window
-      global.document = dom.window.document
-      global.Element = dom.window.Element
-
       useHook = sinon.stub()
       applyMiddleware({
         useHook
       })
+    })
+
+    afterEach(() => {
+      clearMiddlewares()
     })
 
     it('should not render with the same style', () => {
@@ -56,8 +63,8 @@ describe('Container Component', () => {
         return <ContainerWithMemo {...containerProps} />
       }
 
-      const wrapper = mount(<Test margin="10" />)
-      wrapper.setProps({ margin: '10' })
+      const { rerender } = render(<Test margin="10" />)
+      rerender(<Test margin="10" />)
       chai.expect(useHook.callCount).to.equal(1)
     })
 
@@ -70,21 +77,17 @@ describe('Container Component', () => {
         return <ContainerWithMemo {...containerProps} />
       }
 
-      const wrapper = mount(<Test margin="10" />)
-      wrapper.setProps({ margin: '20' })
+      const { rerender } = render(<Test margin="10" />)
+      rerender(<Test margin="20" />)
       chai.expect(useHook.callCount).to.equal(2)
     })
 
     it('should render repeatedly without memo hook', () => {
       const Test = (props) => <ContainerWithMemo style={{ style: props.margin }} />
-      const wrapper = mount(<Test margin="10" />)
-      wrapper.setProps({ margin: '10' })
-      wrapper.setProps({ margin: '10' })
+      const { rerender } = render(<Test margin="10" />)
+      rerender(<Test margin="10" />)
+      rerender(<Test margin="10" />)
       chai.expect(useHook.callCount).to.equal(3)
-    })
-
-    afterEach(() => {
-      clearMiddlewares()
     })
 
   })

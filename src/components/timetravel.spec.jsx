@@ -6,7 +6,7 @@ import React from 'react'
 import * as R from 'ramda'
 import * as Bacon from 'baconjs'
 import { JSDOM } from 'jsdom'
-import { shallow, mount } from 'enzyme'
+import { fireEvent, render } from '@testing-library/react'
 import { createDispatcher, BduxContext } from 'bdux'
 import * as TimeTravelAction from '../actions/timetravel-action'
 import TimeTravelStore from '../stores/timetravel-store'
@@ -15,84 +15,95 @@ import Container from './container'
 import Button from './button'
 import History from './history'
 import styles from './timetravel-style'
+import historyStyles from './history-style'
 
 describe('TimeTravel Component', () => {
 
   let sandbox
 
   beforeEach(() => {
+    const dom = new JSDOM('<html></html>')
+    global.window = dom.window
+    global.document = dom.window.document
+    global.Element = dom.window.Element
     sandbox = sinon.createSandbox()
   })
 
-  it('should wrap inside a container', () => {
-    const wrapper = shallow(<TimeTravel />)
-    chai.expect(wrapper.type()).to.equal(Container)
+  afterEach(() => {
+    sandbox.restore()
   })
 
   it('should limit height to hide history', () => {
-    const wrapper = shallow(<TimeTravel />)
-    chai.expect(wrapper.prop('style')).to.include(styles.hideHistory)
+    const { container } = render(<TimeTravel />)
+    chai.expect(container.firstChild.style).to.include({
+      ...styles.container,
+      ...styles.hideHistory,
+    })
   })
 
   it('should hide history according to timetravel store', () => {
     sandbox.stub(TimeTravelStore, 'getProperty')
       .returns(Bacon.constant({ showHistory: false }))
-    const wrapper = shallow(<TimeTravel />)
-    chai.expect(wrapper.prop('style')).to.include(styles.hideHistory)
+    const { container } = render(<TimeTravel />)
+    chai.expect(container.firstChild.style).to.include(styles.hideHistory)
   })
 
   it('should show history', () => {
     sandbox.stub(TimeTravelStore, 'getProperty')
       .returns(Bacon.constant({ showHistory: true }))
-    const wrapper = shallow(<TimeTravel />)
-    chai.expect(wrapper.prop('style')).to.not.include(styles.hideHistory)
+    const { container } = render(<TimeTravel />)
+    chai.expect(container.firstChild.style).to.not.include(styles.hideHistory)
   })
 
   it('should render three buttons', () => {
-    const wrapper = shallow(<TimeTravel />)
-    chai.expect(wrapper.find(Button)).to.have.length(3)
+    const { container } = render(<TimeTravel />)
+    chai.expect(container.querySelectorAll('button')).to.have.length(3)
   })
 
   it('should render the first button to restart', () => {
-    const wrapper = shallow(<TimeTravel />)
-    const button = wrapper.find(Button).first()
-    chai.expect(button.prop('children')).to.equal('Restart')
+    const { container } = render(<TimeTravel />)
+    const button = container.querySelector('button')
+    chai.expect(button.innerHTML).to.equal('Restart')
   })
 
   it('should render the second button to declutch', () => {
-    const wrapper = shallow(<TimeTravel />)
-    const button = wrapper.find(Button).at(1)
-    chai.expect(button.prop('children')).to.equal('Declutch')
+    const { container } = render(<TimeTravel />)
+    const button = container.querySelectorAll('button')[1]
+    chai.expect(button.innerHTML).to.equal('Declutch')
   })
 
   it('should render the second button to clutch', () => {
     sandbox.stub(TimeTravelStore, 'getProperty')
       .returns(Bacon.constant({ declutch: true }))
-    const wrapper = shallow(<TimeTravel />)
-    const button = wrapper.find(Button).at(1)
-    chai.expect(button.prop('children')).to.equal('Clutch')
+    const { container } = render(<TimeTravel />)
+    const button = container.querySelectorAll('button')[1]
+    chai.expect(button.innerHTML).to.equal('Clutch')
   })
 
   it('should render the third button to show history', () => {
-    const wrapper = shallow(<TimeTravel />)
-    const button = wrapper.find(Button).at(2)
-    chai.expect(button.prop('children')).to.equal('Show History')
+    const { container } = render(<TimeTravel />)
+    const button = container.querySelectorAll('button')[2]
+    chai.expect(button.innerHTML).to.equal('Show History')
   })
 
   it('should render the third button to hide history', () => {
     sandbox.stub(TimeTravelStore, 'getProperty')
       .returns(Bacon.constant({ showHistory: true }))
-    const wrapper = shallow(<TimeTravel />)
-    const button = wrapper.find(Button).at(2)
-    chai.expect(button.prop('children')).to.equal('Hide History')
+    const { container } = render(<TimeTravel />)
+    const button = container.querySelectorAll('button')[2]
+    chai.expect(button.innerHTML).to.equal('Hide History')
   })
 
   it('should render history', () => {
-    const wrapper = shallow(<TimeTravel />)
-    chai.expect(wrapper.find(History)).to.have.length(1)
+    sandbox.stub(TimeTravelStore, 'getProperty')
+      .returns(Bacon.constant({ history: [] }))
+    const { container } = render(<TimeTravel />)
+    const history = container.firstChild.lastChild
+    chai.expect(history.innerHTML).to.be.empty
+    chai.expect(history.style).to.include(historyStyles.list)
   })
 
-  describe('with jsdom', () => {
+  describe('with dispatcher', () => {
 
     const dispatcher = createDispatcher()
     const context = {
@@ -101,83 +112,84 @@ describe('TimeTravel Component', () => {
     }
 
     beforeEach(() => {
-      const dom = new JSDOM('<html></html>')
-      global.window = dom.window
-      global.document = dom.window.document
-      global.Element = dom.window.Element
-
       sandbox.stub(dispatcher, 'bindToDispatch')
         .callsFake(R.identity)
     })
 
     it('should click to restart action', () => {
-      const wrapper = mount(
+      sandbox.spy(TimeTravelAction, 'restart')
+      const { container } = render(
         <div>
           <BduxContext.Provider value={context}>
             <TimeTravel />
           </BduxContext.Provider>
         </div>
       )
-      const button = wrapper.find(Button).first()
-      chai.expect(button.prop('onClick')).to.equal(TimeTravelAction.restart)
+      const button = container.querySelector('button')
+      fireEvent.click(button)
+      chai.expect(TimeTravelAction.restart.calledOnce).to.be.true
     })
 
     it('should click to declutch action', () => {
-      const wrapper = mount(
+      sandbox.spy(TimeTravelAction, 'declutch')
+      const { container } = render(
         <div>
           <BduxContext.Provider value={context}>
             <TimeTravel />
           </BduxContext.Provider>
         </div>
       )
-      const button = wrapper.find(Button).at(1)
-      chai.expect(button.prop('onClick')).to.equal(TimeTravelAction.declutch)
+      const button = container.querySelectorAll('button')[1]
+      fireEvent.click(button)
+      chai.expect(TimeTravelAction.declutch.calledOnce).to.be.true
     })
 
     it('should click to clutch action', () => {
+      sandbox.spy(TimeTravelAction, 'clutch')
       sandbox.stub(TimeTravelStore, 'getProperty')
         .returns(Bacon.constant({ declutch: true }))
-      const wrapper = mount(
+      const { container } = render(
         <div>
           <BduxContext.Provider value={context}>
             <TimeTravel />
           </BduxContext.Provider>
         </div>
       )
-      const button = wrapper.find(Button).at(1)
-      chai.expect(button.prop('onClick')).to.equal(TimeTravelAction.clutch)
+      const button = container.querySelectorAll('button')[1]
+      fireEvent.click(button)
+      chai.expect(TimeTravelAction.clutch.calledOnce).to.be.true
     })
 
     it('should click to toggle history', () => {
-      const wrapper = mount(
+      sandbox.spy(TimeTravelAction, 'toggleHistory')
+      const { container } = render(
         <div>
           <BduxContext.Provider value={context}>
             <TimeTravel />
           </BduxContext.Provider>
         </div>
       )
-      const button = wrapper.find(Button).at(2)
-      chai.expect(button.prop('onClick')).to.equal(TimeTravelAction.toggleHistory)
+      const button = container.querySelectorAll('button')[2]
+      fireEvent.click(button)
+      chai.expect(TimeTravelAction.toggleHistory.calledOnce).to.be.true
     })
 
     it('should click to hide history', () => {
+      sandbox.spy(TimeTravelAction, 'toggleHistory')
       sandbox.stub(TimeTravelStore, 'getProperty')
         .returns(Bacon.constant({ showHistory: true }))
-      const wrapper = mount(
+      const { container } = render(
         <div>
           <BduxContext.Provider value={context}>
             <TimeTravel />
           </BduxContext.Provider>
         </div>
       )
-      const button = wrapper.find(Button).at(2)
-      chai.expect(button.prop('onClick')).to.equal(TimeTravelAction.toggleHistory)
+      const button = container.querySelectorAll('button')[2]
+      fireEvent.click(button)
+      chai.expect(TimeTravelAction.toggleHistory.calledOnce).to.be.true
     })
 
-  })
-
-  afterEach(() => {
-    sandbox.restore()
   })
 
 })

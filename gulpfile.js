@@ -128,14 +128,14 @@ function watch() {
 
 gulp.task('test', gulp.series(
   testWeb,
-  jestIOS,
-  jestAndroid
+  // jestIOS,
+  // jestAndroid
 ));
 
 gulp.task('cover', gulp.series(
   coverWeb,
-  coverIOS,
-  coverAndroid
+  // coverIOS,
+  // coverAndroid
 ));
 
 gulp.task('lint', lint);

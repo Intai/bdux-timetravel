@@ -3,13 +3,13 @@ export default {
     fontFamily: 'Lucida Grande, Helvetica, Arial, Sans-Serif',
     fontSize: '0.8rem',
     listStyleType: 'none',
-    padding: 0,
-    margin: 0,
+    padding: '0px',
+    margin: '0px',
     overflow: 'auto',
     height: '100%'
   },
   hide: {
-    flex: 0
+    flex: '0 0 0px'
   },
   item: {
 

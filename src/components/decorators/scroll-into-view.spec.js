@@ -5,10 +5,17 @@ import sinon from 'sinon'
 import * as R from 'ramda'
 import React from 'react'
 import { JSDOM } from 'jsdom'
-import { shallow, mount } from 'enzyme'
+import { fireEvent, render } from '@testing-library/react'
 import { useScrollIntoView } from './scroll-into-view'
 
 describe('useScrollIntoView Hook', () => {
+
+  beforeEach(() => {
+    const dom = new JSDOM('<html></html>')
+    global.window = dom.window
+    global.document = dom.window.document
+    global.Element = dom.window.Element
+  })
 
   it('should reference list and anchor', () => {
     const Test = () => {
@@ -17,19 +24,12 @@ describe('useScrollIntoView Hook', () => {
       chai.expect(refAnchor).to.have.property('current')
       return false
     }
-    shallow(<Test />)
+    render(<Test />)
   })
 
-  describe('with jsdom', () => {
+  describe('with list', () => {
 
     let list, anchor, scrollTo, Test
-
-    beforeEach(() => {
-      const dom = new JSDOM('<html></html>')
-      global.window = dom.window
-      global.document = dom.window.document
-      global.Element = dom.window.Element
-    })
 
     beforeEach(() => {
       list = document.createElement('ul')
@@ -57,8 +57,8 @@ describe('useScrollIntoView Hook', () => {
         offsetTop: { value: 0 }
       })
 
-      const wrapper = mount(<Test />)
-      wrapper.setProps({})
+      const { rerender } = render(<Test />)
+      rerender(<Test />)
       chai.expect(scrollTo.calledOnce).to.be.true
       chai.expect(scrollTo.lastCall.args[0]).to.equal(0)
     })
@@ -73,21 +73,21 @@ describe('useScrollIntoView Hook', () => {
         offsetTop: { value: 0 }
       })
 
-      const wrapper = mount(<Test />)
-      wrapper.setProps({})
-      wrapper.setProps({})
+      const { rerender } = render(<Test />)
+      rerender(<Test />)
+      rerender(<Test />)
       chai.expect(scrollTo.calledOnce).to.be.true
     })
 
     it('should not scroll when there is no list', () => {
-      const wrapper = mount(<Test list={undefined} />)
-      wrapper.setProps({})
+      const { rerender } = render(<Test list={undefined} />)
+      rerender(<Test list={undefined} />)
       chai.expect(scrollTo.called).to.be.false
     })
 
     it('should not scroll when there is no anchor', () => {
-      const wrapper = mount(<Test anchor={undefined} />)
-      wrapper.setProps({})
+      const { rerender } = render(<Test anchor={undefined} />)
+      rerender(<Test anchor={undefined} />)
       chai.expect(scrollTo.called).to.be.false
     })
 
@@ -96,8 +96,8 @@ describe('useScrollIntoView Hook', () => {
         offsetHeight: { value: 0 }
       })
 
-      const wrapper = mount(<Test />)
-      wrapper.setProps({})
+      const { rerender } = render(<Test />)
+      rerender(<Test />)
       chai.expect(scrollTo.called).to.be.false
     })
 
@@ -107,13 +107,13 @@ describe('useScrollIntoView Hook', () => {
         offsetHeight: { value: 10 }
       })
 
-      const wrapper = mount(<Test />)
-      wrapper.setProps({})
+      const { rerender } = render(<Test />)
+      rerender(<Test />)
       scrollTo.reset()
 
-      list.dispatchEvent(new window.CustomEvent('mouseenter'));
+      fireEvent.mouseEnter(list)
       anchor = { offsetTop: 0 }
-      wrapper.setProps({ anchor })
+      rerender(<Test anchor={anchor} />)
       chai.expect(scrollTo.called).to.be.false
     })
 
@@ -123,14 +123,14 @@ describe('useScrollIntoView Hook', () => {
         offsetHeight: { value: 10 }
       })
 
-      const wrapper = mount(<Test />)
-      wrapper.setProps({})
+      const { rerender } = render(<Test />)
+      rerender(<Test />)
       scrollTo.reset()
 
-      list.dispatchEvent(new window.CustomEvent('mouseenter'));
-      list.dispatchEvent(new window.CustomEvent('mouseleave'));
+      fireEvent.mouseEnter(list)
+      fireEvent.mouseLeave(list)
       anchor = { offsetTop: 5 }
-      wrapper.setProps({ anchor })
+      rerender(<Test anchor={anchor} />)
       chai.expect(scrollTo.calledOnce).to.be.true
       chai.expect(scrollTo.lastCall.args[0]).to.equal(5)
     })
@@ -146,8 +146,8 @@ describe('useScrollIntoView Hook', () => {
         offsetHeight: { value: 5 }
       })
 
-      const wrapper = mount(<Test />)
-      wrapper.setProps({})
+      const { rerender } = render(<Test />)
+      rerender(<Test />)
       chai.expect(scrollTo.calledOnce).to.be.true
       chai.expect(scrollTo.lastCall.args[0]).to.equal(4)
     })
@@ -163,8 +163,8 @@ describe('useScrollIntoView Hook', () => {
         offsetHeight: { value: 20 }
       })
 
-      const wrapper = mount(<Test />)
-      wrapper.setProps({})
+      const { rerender } = render(<Test />)
+      rerender(<Test />)
       chai.expect(scrollTo.calledOnce).to.be.true
       chai.expect(scrollTo.lastCall.args[0]).to.equal(9)
     })
@@ -181,8 +181,8 @@ describe('useScrollIntoView Hook', () => {
         offsetHeight: { value: 5 }
       })
 
-      const wrapper = mount(<Test />)
-      wrapper.setProps({})
+      const { rerender } = render(<Test />)
+      rerender(<Test />)
       chai.expect(scrollTo.calledOnce).to.be.true
       chai.expect(scrollTo.lastCall.args[0]).to.equal(2)
     })
@@ -199,8 +199,8 @@ describe('useScrollIntoView Hook', () => {
         offsetHeight: { value: 5 }
       })
 
-      const wrapper = mount(<Test />)
-      wrapper.setProps({})
+      const { rerender } = render(<Test />)
+      rerender(<Test />)
       chai.expect(scrollTo.called).to.be.false
     })
 
