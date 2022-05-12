@@ -8,13 +8,14 @@ const onRevert = (dispatch, id) => () => {
   dispatch(TimeTravelAction.revert(id))
 }
 
-const formatValue = (value) => (
+const formatValue = (value) => {
   // todo: expandable tree view.
-  JSON.stringify(value)
+  const json = JSON.stringify(value)
+  return json && json
     .replace(/([{,])/g, '$1\n  ')
     .replace(/"(.*)":/g, '$1: ')
     .replace(/}$/, ' }')
-)
+}
 
 const renderParam = (value, key) => (
   <li key={key}>
